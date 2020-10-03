@@ -4,47 +4,39 @@ import pymysql.cursors
 
 
 
-"""
-git checkout -b abhishekh4
-git branch
-git status
-git add .
-git push origin abhishekh4
-git checkout master
-git merge abhishekh4
-"""
-
-
-def add_hotel():
+def add_hotel():      
     """
     Add a new hotel
     """
     if True:
-        # Takes Hotel's details
+        #Takes Hotel's details
         try:
             print("Enter Hotel Details: ")
             id = input("Hotel ID: ")
             name = input("Name: ")
             managerid = input("Manager ID: ")
-            # Check if Manager exists in the database
-
+            #Check if Manager exists in the database
+            query = "SELECT ID FROM MANAGER WHERE ID=%s"%(managerid)
+            cur.execute(query)
+            if cur.fetchone() is None:
+                manager_flag = input("No such Manager exists , would you like to add a new manager(0/1)?: ")
+                if manager_flag:
+                    hireAnEmployee()
             stars = input("Stars: ")
             locationid = addLocation()
             print(locationid)
-            query = "INSERT INTO HOTEL VALUES ('%s','%s','%s','%s','%s')" % (
-                id, name, managerid, locationid['ID'], stars)
+            query = "INSERT INTO HOTEL VALUES ('%s','%s','%s','%s','%s')"%(id,name,managerid,locationid['ID'],stars)
             print(query)
             cur.execute(query)
             con.commit()
         except Exception as e:
             con.rollback()
             print("Failed to insert new hotel")
-            query = "DELETE FROM LOCATION WHERE ID='%s'" % (locationid['ID'])
+            query = "DELETE FROM LOCATION WHERE ID='%s'"%(locationid['ID'])
             cur.execute(query)
             con.commit()
             print("Deleted Location")
             print(e)
-
 
 def addLocation():
     '''
@@ -55,23 +47,19 @@ def addLocation():
         city = input("City: ")
         country = input("Country: ")
         zipcode = input("Zipcode: ")
-        query = "INSERT INTO LOCATION (STREET,CITY,COUNTRY,ZIPCODE) VALUES ('%s','%s','%s','%s')" % (
-            street, city, country, zipcode)
+        query = "INSERT INTO LOCATION (STREET,CITY,COUNTRY,ZIPCODE) VALUES ('%s','%s','%s','%s')"%(street,city,country,zipcode)
         print(query)
         cur.execute(query)
         con.commit()
-        cur.execute("SELECT ID FROM LOCATION WHERE STREET='%s' AND CITY='%s' AND COUNTRY='%s' AND ZIPCODE='%s'" % (
-            street, city, country, zipcode))
+        cur.execute("SELECT ID FROM LOCATION WHERE STREET='%s' AND CITY='%s' AND COUNTRY='%s' AND ZIPCODE='%s'"%(street,city,country,zipcode))
         locationid = cur.fetchone()
         return locationid
     except Exception as e:
         con.rollback()
         print("Failed to insert location\n")
-        print(e)
-
-
+        print(e)  
+        
 def hireAnEmployee():
-
     try:
         # Takes emplyee details as input
         row = {}
@@ -79,20 +67,26 @@ def hireAnEmployee():
         name = (input("Name (Fname Minit Lname): ")).split(' ')
         row["FNAME"] = name[0]
         row["LNAME"] = name[1]
-        row["ID"] = int(input("ID: "))
+        row["ID"] = id
         row["DOB"] = input("Birth Date (YYYY-MM-DD): ")
         row["EMAIL"] = input("email: ")
         row["JOINDATE"] = input("joining date (YYYY-MM-DD): ")
         row["SALARY"] = int(input("Salary: "))
         row["STATUS"] = "currently employed"
-        position = input(
-            "Enter the position of the employee (supervisor/service_staff/manager")
-
-        query = "INSERT INTO EMPLOYEE (FNAME, LNAME, ID, DOB, EMAIL, JOINDATE, SALARY, STATUS) VALUES(%s,%s, %s, '%s', %s, '%s', %s, %s)" % (
-            row["FNAME"], row["LNAME"], row["ID"], row["DOB"], row["EMAIL"], row["JOINDATE"], row["SALARY"], row["STATUS"])
-
+        row["PHONE"] = int(input("Enter 6 digit phone: "))
+        query = "INSERT INTO EMPLOYEE (FNAME, LNAME, ID, DOB, EMAIL, JOINDATE, SALARY, STATUS, PHONE) VALUES('%s','%s', %s, '%s', '%s', '%s', %s, '%s',%s)" % (row["FNAME"], row["LNAME"], row["ID"], row["DOB"], row["EMAIL"], row["JOINDATE"], row["SALARY"], row["STATUS"],row["PHONE"])
         print(query)
-        print("Inserted Into Database")
+        cur.execute(query)
+        con.commit()
+        print("Inserted Into Employee Database")
+        position = input("Enter the position of the employee (supervisor/service_staff/manager): ")
+        if position == "supervisor":
+            add_supervisor(row["ID"])
+        elif position == "service_staff":
+            add_service_staff(row["ID"])
+        elif position == "manager":
+            add_manager(row["ID"])
+        
 
     except Exception as e:
         con.rollback()
@@ -101,13 +95,39 @@ def hireAnEmployee():
 
     return
 
+def add_supervisor(id):
+    '''
+    Add a supervisor
+    '''
 
-""" ------ ABHISHEKH ---------"""
+    pass
+
+def add_service_staff(id):
+    '''
+    Add a service staff
+    '''
+    pass
+
+def add_manager(id):
+    '''
+    Add a manager
+    '''
+    try:
+        query = "INSERT INTO MANAGER (ID) VALUES(%d)"%(id)
+        cur.execute(query)
+        con.commit()
+        print("Inserted into Manager table")
+    except Exception as e:
+        con.rollback()
+        print("Failed to insert into manager table")
+        print(e)
+
+
+
 def hotel_exists(id):
     hotel_query = "SELECT ID FROM HOTEL WHERE ID = %d" % (id)
     cur.execute(hotel_query)
     return cur.fetchone() is not None
-
 
 def add_club():
     """
@@ -142,7 +162,7 @@ def add_club():
         if not hotel_exists(row["HOTELID"]):
             print("Error at add_club(): Hotel does not exist")
             return
-
+        
         supid_query = "SELECT ID FROM SUPERVISOR WHERE ID = %d" % (row["SUPID"])
         cur.execute(supid_query)
         if cur.fetchone() is None:
@@ -155,7 +175,6 @@ def add_club():
         print(query)
         cur.execute(query)
         con.commit()
-
 
 def add_room():
     """
@@ -174,7 +193,7 @@ def add_room():
         row["NUMBER"] = int(input("Room number: "))
         row["HOTELID"] = int(input("Hotel ID: "))
         # row["STATUS"] = int(input("Status: "))  # Set to empty by default
-        row["STATUS"] = 1
+        row["STATUS"] = 1 
         row["RATE"] = int(input("Room rate: "))
         row["MAX_GUESTS"] = int(input("Max guests allowed: "))
 
@@ -182,19 +201,17 @@ def add_room():
             print("Error at add_room(): Hotel does not exist")
             return
 
-        query_room_type = "SELECT TYPE FROM ROOM_TYPE where RATE = %d and MAX_GUESTS = %d" % (
-            row["RATE"], row["MAX_GUESTS"])
+        query_room_type = "SELECT TYPE FROM ROOM_TYPE where RATE = %d and MAX_GUESTS = %d" % (row["RATE"], row["MAX_GUESTS"])
         cur.execute(query_room_type)
         room_type = cur.fetchone()
 
         if room_type is None:
-            room_type_insert = "INSERT INTO ROOM_TYPE (RATE, MAX_GUESTS) VALUES (%d, %d)" % (
-                row["RATE"], row["MAX_GUESTS"])
+            room_type_insert = "INSERT INTO ROOM_TYPE (RATE, MAX_GUESTS) VALUES (%d, %d)" % (row["RATE"], row["MAX_GUESTS"])
             cur.execute(room_type_insert)
 
             cur.execute(query_room_type)
             room_type = cur.fetchone()
-
+        
         row["TYPE"] = room_type["TYPE"]
         print("Final room type = ", row["TYPE"])
 
@@ -210,7 +227,6 @@ def add_room():
     except Exception as e:
         print("Error while inserting into ROOM: %s", e)
 
-
 def add_member():
     if True:
         row = {}
@@ -222,20 +238,13 @@ def add_member():
         row["DOB"] = input("Date of birth (YYYY-MM-DD): ")
         row["STAYS"] = int(input("Stays: "))
 
-        query = "INSERT INTO MEMBERS (TIER, FNAME, LNAME, EMAILID, DOB, STAYS) values (%d, '%s', '%s', '%s', \'%s\', %d)" % (
-            row["TIER"], row["FNAME"], row["LNAME"], row["EMAILID"], row["DOB"], row["STAYS"])
+        query = "INSERT INTO MEMBERS (TIER, FNAME, LNAME, EMAILID, DOB, STAYS) values (%d, '%s', '%s', '%s', \'%s\', %d)" % (row["TIER"], row["FNAME"], row["LNAME"], row["EMAILID"], row["DOB"], row["STAYS"])
         print("Query: ", query)
         cur.execute(query)
         con.commit()
         print("Inserted to database")
     # except Exception as e:
     #     print("Error while add_member(): ", e)
-
-
-"""
-------END ABHISHEKH------
-"""
-
 
 def dispatch():
     """
@@ -247,7 +256,7 @@ def dispatch():
     ch = input("Enter choice: ")
     if(ch == "a"):
         hireAnEmployee()
-
+   
     elif(ch == "b"):
         pass
 
@@ -258,17 +267,17 @@ def dispatch():
 # Global
 while(1):
     tmp = sp.call('clear', shell=True)
-
+    
     # Can be skipped if you want to hard core username and password
     username = input("Username: ")
     password = input("Password: ")
 
     if True:  # try
         # Set db name accordingly which have been create by you
-        # Set host to the server's address if you don't want to use local SQLl server
+        # Set host to the server's address if you don't want to use local SQLl server 
         con = pymysql.connect(host='localhost',
                               user=username,
-                              port=5005,
+                              port = 5005,
                               password=password,
                               db='HCDBMS',
                               cursorclass=pymysql.cursors.DictCursor)
@@ -283,7 +292,6 @@ while(1):
 
         with con.cursor() as cur:
             while(1):
-                tmp = sp.call('clear', shell=True)
                 # Here taking example of Employee Mini-world
                 print("1. Manage employees")
                 print("2. Add Hotel")  # Add Hotel
@@ -295,7 +303,7 @@ while(1):
                 print("8. Add monthly finance")
                 print("9. Generate profit report")
                 print("10. Generate Guest Bill")
-                print("11. Add a Member Guest")  # ABHISHEKH
+                print("11. Add a Member Guest")
                 print("12. Logout")
                 ch = int(input("Enter choice> "))
                 tmp = sp.call('clear', shell=True)
@@ -305,7 +313,7 @@ while(1):
                     add_hotel()
                 elif ch == 6:
                     add_room()
-                 elif (ch == 11):
+                elif ch == 11:
                     add_member()
                 elif ch == 12:
                     break
