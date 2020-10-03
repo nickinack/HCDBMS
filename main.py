@@ -16,12 +16,13 @@ def add_hotel():
             name = input("Name: ")
             managerid = input("Manager ID: ")
             #Check if Manager exists in the database
-            query = "SELECT ID FROM MANAGER WHERE ID=%s"%(managerid)
-            cur.execute(query)
-            if cur.fetchone() is None:
+            if not manager_exists(managerid):
                 manager_flag = input("No such Manager exists , would you like to add a new manager(0/1)?: ")
                 if manager_flag:
                     hireAnEmployee()
+                else:
+                    print("\n Sorry cannot insert")
+                    return
             stars = input("Stars: ")
             locationid = addLocation()
             print(locationid)
@@ -67,7 +68,7 @@ def hireAnEmployee():
         name = (input("Name (Fname Minit Lname): ")).split(' ')
         row["FNAME"] = name[0]
         row["LNAME"] = name[1]
-        row["ID"] = id
+        row["ID"] = input("Input id: ")
         row["DOB"] = input("Birth Date (YYYY-MM-DD): ")
         row["EMAIL"] = input("email: ")
         row["JOINDATE"] = input("joining date (YYYY-MM-DD): ")
@@ -99,14 +100,45 @@ def add_supervisor(id):
     '''
     Add a supervisor
     '''
-
-    pass
-
+    try:
+        managerid = input("Manager ID: ")
+        if not manager_exists(managerid):
+            print("No such manager exists")
+            return
+        dept = input("Department: ")
+        query = "INSERT INTO SUPERVISOR VALUES (%s,%s,'%s')"%(id,managerid,dept)
+        cur.execute(query)
+        con.commit()
+        print("Inserted into supervisor table successfully")
+    except Exception as e:
+        print("Failed to add supervisor")
+        query = "DELETE FROM EMPLOYEE WHERE ID=%s"%(id)
+        cur.execute(query)
+        con.commit()
+        print(e)
+            
+    
 def add_service_staff(id):
     '''
     Add a service staff
     '''
-    pass
+    try:
+        superid = input("Supervisor ID: ")
+        if not supervisor_exists(superid):
+            print("No such supervisor exists")
+            return
+        dept = input("Department: ")
+        query = "INSERT INTO SERVICE_STAFF VALUES (%s,%s,'%s')"%(id,superid,dept)
+        cur.execute(query)
+        con.commit()
+        print("Inserted into service staff successfully")
+    except Exception as e:
+        print("Failed to add service staff")
+        query = "DELETE FROM EMPLOYEE WHERE ID=%s"%(id)
+        cur.execute(query)
+        con.commit()
+        print(e)
+        
 
 def add_manager(id):
     '''
@@ -120,9 +152,20 @@ def add_manager(id):
     except Exception as e:
         con.rollback()
         print("Failed to insert into manager table")
+        query = "DELETE FROM EMPLOYEE WHERE ID=%s"%(id)
+        cur.execute(query)
+        con.commit()
         print(e)
 
+def manager_exists(id):
+    query = "SELECT ID FROM MANAGER WHERE ID=%s"%(id)
+    cur.execute(query)
+    return cur.fetchone() is not None
 
+def supervisor_exists(id):
+    query = "SELECT ID FROM SUPERVISOR WHERE ID=%s"%(id)
+    cur.execute(query)
+    return cur.fetchone() is not None
 
 def hotel_exists(id):
     hotel_query = "SELECT ID FROM HOTEL WHERE ID = %d" % (id)
