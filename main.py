@@ -9,10 +9,9 @@ git checkout -b abhishekh4
 git branch
 git status
 git add .
-git push
-
-
-
+git push origin abhishekh4
+git checkout master
+git merge abhishekh4
 """
 
 
