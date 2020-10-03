@@ -3,6 +3,19 @@ import pymysql
 import pymysql.cursors
 
 
+
+"""
+git checkout -b abhishekh4
+git branch
+git status
+git add .
+git push
+
+
+
+"""
+
+
 def add_hotel():
     """
     Add a new hotel
