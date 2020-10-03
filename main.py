@@ -284,7 +284,7 @@ while(1):
                 print("8. Add monthly finance")
                 print("9. Generate profit report")
                 print("10. Generate Guest Bill")
-                print("11. Add a Member Guest")
+                print("11. Add a Member Guest")  # ABHISHEKH
                 print("12. Logout")
                 ch = int(input("Enter choice> "))
                 tmp = sp.call('clear', shell=True)
