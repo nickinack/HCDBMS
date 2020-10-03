@@ -137,7 +137,30 @@ def add_room():
         row["HOTELID"] = int(input("Hotel ID: "))
         # row["STATUS"] = int(input("Status: "))  # Set to empty by default
         row["STATUS"] = 1 
-        row["TYPE"] = int(input("Room type: "))
+        row["RATE"] = int(input("Room rate: "))
+        row["MAX_GUESTS"] = int(input("Max guests allowed: "))
+
+        hotel_query = "SELECT ID FROM HOTEL WHERE ID = %d" % (row["HOTELID"])
+        cur.execute(hotel_query)
+        if cur.fetchone() is None:
+            print("ERROR AT add_room(): NO SUCH HOTEL FOUND")
+            return
+
+        query_room_type = "SELECT TYPE FROM ROOM_TYPE where RATE = %d and MAX_GUESTS = %d" % 
+            (row["RATE"], row["MAX_GUESTS"])
+        cur.execute(query_room_type)
+        room_type = cur.fetchone()
+
+        if room_type is None:
+            room_type_insert = "INSERT INTO ROOM_TYPE (RATE, MAX_GUESTS) VALUES (%d, %d)" % 
+                (row["RATE"], row["MAX_GUESTS"])
+            cur.execute(room_type_insert)
+
+            cur.execute(query_room_type)
+            room_type = cur.fetchone()
+        
+        row["TYPE"] = room_type["TYPE"]
+        print("Final room type = ", row["TYPE"])
 
         query = "INSERT INTO ROOMS(NUMBER, HOTELID, STATUS, TYPE) VALUES(%d, %d, %d, %d)" % (
             row["NUMBER"], row["HOTELID"], row["STATUS"], row["TYPE"])
