@@ -16,27 +16,42 @@ def add_hotel():
             name = input("Name: ")
             managerid = input("Manager ID: ")
             stars = input("Stars: ")
-            # Gotta check if maanger exists in the database
-            street = input("Street: ")
-            city = input("City: ")
-            country = input("Country: ")
-            zipcode = int(input("Zipcode: "))
-            query1 = "INSERT INTO LOCATION (STREET,CITY,COUNTRY,ZIPCODE) VALUES ('%s','%s','%s',%d)"%(street,city,country,zipcode)
-            print(query1)
-            cur.execute(query1)
-            con.commit()
-            locationid = cur.execute("SELECT ID FROM LOCATION WHERE STREET='%s' and CITY='%s' and COUNTRY='%s' and ZIPCODE=%s"%(street,city,country,zipcode))
+            locationid = addLocation()
             print(locationid)
-            query2 = "INSERT INTO HOTEL VALUES (%d,'%s',%d,%d,%d)"%(id,name,managerid,locationid,stars)
-            print(query2)
-            cur.execute(query2)
+            query = "INSERT INTO HOTEL VALUES ('%s','%s','%s','%s','%s')"%(id,name,managerid,locationid['ID'],stars)
+            print(query)
+            cur.execute(query)
             con.commit()
-
         except Exception as e:
             con.rollback()
             print("Failed to insert new hotel")
+            query = "DELETE FROM LOCATION WHERE ID='%s'"%(locationid['ID'])
+            cur.execute(query)
+            con.commit()
+            print("Deleted Location")
             print(e)
-        
+
+def addLocation():
+    '''
+    Add a new location and return the ID
+    '''
+    try:
+        street = input("Street: ")
+        city = input("City: ")
+        country = input("Country: ")
+        zipcode = input("Zipcode: ")
+        query = "INSERT INTO LOCATION (STREET,CITY,COUNTRY,ZIPCODE) VALUES ('%s','%s','%s','%s')"%(street,city,country,zipcode)
+        print(query)
+        cur.execute(query)
+        con.commit()
+        cur.execute("SELECT ID FROM LOCATION WHERE STREET='%s' AND CITY='%s' AND COUNTRY='%s' AND ZIPCODE='%s'"%(street,city,country,zipcode))
+        locationid = cur.fetchone()
+        return locationid
+    except Exception as e:
+        con.rollback()
+        print("Failed to insert location\n")
+        print(e)
+  
         
 def hireAnEmployee():
    
@@ -54,8 +69,7 @@ def hireAnEmployee():
         row["SALARY"] = int(input("Salary: "))
         row["STATUS"] = "currently employed"
 
-        query = "INSERT INTO EMPLOYEE (FNAME,  LNAME, ID, DOB, EMAIL, JOINDATE, SALARY, STATUS) VALUES('%s','%s', '%d', '\'%s\'', '\'%s\'', '%d', %s)" % (
-            row["FNAME"], row["LNAME"], row["ID"], row["DOB"], row["EMAIL"], row["JOINDATE"], row["SALARY"], row["STATUS"])
+        query = "INSERT INTO EMPLOYEE (FNAME, LNAME, ID, DOB, EMAIL, JOINDATE, SALARY, STATUS) VALUES(%s,%s, %s, '%s', %s, '%s', %s, %s)" % (row["FNAME"], row["LNAME"], row["ID"], row["DOB"], row["EMAIL"], row["JOINDATE"], row["SALARY"], row["STATUS"])
 
         print(query)
         print("Inserted Into Database")
@@ -63,16 +77,9 @@ def hireAnEmployee():
     except Exception as e:
         con.rollback()
         print("Failed to insert into database")
-        print(">>>>>>>>>>>>>", e)
+        print(e)
 
     return
-
-
-
-
-"""
-------ABHISHEKH---------
-"""
 
 def hotel_exists(id):
     hotel_query = "SELECT ID FROM HOTEL WHERE ID = %d" % (id)
@@ -126,13 +133,6 @@ def add_club():
         cur.execute(query)
         con.commit()
 
-        print("Inserted Into Database")
-
-    # except Exception as e:
-    #     print("Error while inserting into clubs: %s", e)
-
-
-
 def add_room():
     """
     `NUMBER` int NOT NULL,
@@ -184,50 +184,24 @@ def add_room():
     except Exception as e:
         print("Error while inserting into ROOM: %s", e)
 
-
-def add_member():
-    if True:
-        row = {}
-        print("Enter member details: ")
-        row["TIER"] = int(input("Tier: "))
-        row["FNAME"] = input("First name: ")
-        row["LNAME"] = input("Last name: ")
-        row["EMAILID"] = input("Email: ")
-        row["DOB"] = input("Date of birth (YYYY-MM-DD): ")
-        row["STAYS"] = int(input("Stays: "))
-
-        query = "INSERT INTO MEMBERS (TIER, FNAME, LNAME, EMAILID, DOB, STAYS) values (%d, '%s', '%s', '%s', \'%s\', %d)" % (row["TIER"], row["FNAME"], row["LNAME"], row["EMAILID"], row["DOB"], row["STAYS"])
-        print("Query: ", query)
-        cur.execute(query)
-        con.commit()
-        print("Inserted to database")
-    # except Exception as e:
-    #     print("Error while add_member(): ", e)
-
 """
 ------END ABHISHEKH------
 """
 
 
-
-
-def dispatch(ch):
+def dispatch():
     """
     Function that maps helper functions to option entered
     """
-
-    if(ch == 'a'):
+    print("The following options are possible for employee management")
+    print("a. Add an Employee")
+    print("b. Fire an Employee")
+    ch = input("Enter choice: ")
+    if(ch == "a"):
         hireAnEmployee()
    
-    elif(ch == 3):
-        print("here")
-        add_club()
-    
-    elif(ch == 6):
-        add_room()
-
-    elif (ch == 11):
-        add_member()
+    elif(ch == "b"):
+        pass
 
     else:
         print("Error: Invalid Option")
@@ -266,23 +240,26 @@ while(1):
                 print("1. Manage employees")
                 print("2. Add Hotel")  # Add Hotel
                 print("3. Add a Club")  # ABHISHEKH
-                print("4. Check in a Guest")  # Add 1 to corresponding MEMBER.STAYS
+                print("4. Check in a Guest")
                 print("5. Check out a Guest")
                 print("6. Add a room to a hotel")  # ABHISHEKH
                 print("7. Guest registering to club")
                 print("8. Add monthly finance")
                 print("9. Generate profit report")
                 print("10. Generate Guest Bill")
-                print("11. Add a Member Guest")  # ABHISHEKH
+                print("11. Add a Member Guest")
                 print("12. Logout")
                 ch = int(input("Enter choice> "))
                 tmp = sp.call('clear', shell=True)
+                if ch == 1:
+                    dispatch()
                 if ch == 2:
                     add_hotel()
+                if ch == 6:
+                    add_room()
                 if ch == 12:
                     break
                 else:
-                    dispatch(ch)
                     tmp = input("Enter any key to CONTINUE>")
 
     # except:
