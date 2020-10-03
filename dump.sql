@@ -18,6 +18,7 @@
 --
 -- Table structure for table `BELONGS_TO`
 --
+USE HCDBMS;
 
 DROP TABLE IF EXISTS `BELONGS_TO`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

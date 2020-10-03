@@ -90,6 +90,7 @@ def hireAnEmployee():
     return
 
 
+""" ------ ABHISHEKH ---------"""
 def hotel_exists(id):
     hotel_query = "SELECT ID FROM HOTEL WHERE ID = %d" % (id)
     cur.execute(hotel_query)
