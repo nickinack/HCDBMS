@@ -1,5 +1,4 @@
--- MySQL dump 10.13  Distrib 8.0.21, for osx10.15 (x86_64)
---
+-- MySQL dump 10.13  Distrib 8.0.21, for osx10.15 (x86_64) --
 -- Host: 127.0.0.1    Database: HCDBMS
 -- ------------------------------------------------------
 -- Server version	8.0.21
@@ -19,6 +18,7 @@
 -- Table structure for table `BELONGS_TO`
 --
 
+USE HCDBMS;
 DROP TABLE IF EXISTS `BELONGS_TO`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
