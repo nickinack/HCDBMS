@@ -75,6 +75,10 @@ def hireAnEmployee():
         row["SALARY"] = int(input("Salary: "))
         row["STATUS"] = "currently employed"
         row["PHONE"] = int(input("Enter 6 digit phone: "))
+        hotelid = input("Hotel ID: ")
+        if not hotel_exists(hotelid):
+            print("No Such hotel exists")
+            return
         query = "INSERT INTO EMPLOYEE (FNAME, LNAME, ID, DOB, EMAIL, JOINDATE, SALARY, STATUS, PHONE) VALUES('%s','%s', %s, '%s', '%s', '%s', %s, '%s',%s)" % (row["FNAME"], row["LNAME"], row["ID"], row["DOB"], row["EMAIL"], row["JOINDATE"], row["SALARY"], row["STATUS"],row["PHONE"])
         print(query)
         cur.execute(query)
@@ -87,8 +91,8 @@ def hireAnEmployee():
             add_service_staff(row["ID"])
         elif position == "manager":
             add_manager(row["ID"])
+        belongs_to(hotelid,id)
         
-
     except Exception as e:
         con.rollback()
         print("Failed to insert into database")
@@ -161,6 +165,19 @@ def manager_exists(id):
     query = "SELECT ID FROM MANAGER WHERE ID=%s"%(id)
     cur.execute(query)
     return cur.fetchone() is not None
+
+def belongs_to(hotelid , empid):
+    '''
+    Implement Belongs to relationship
+    '''
+    try:
+        query = "INSERT INTO BELONGS_TO VALUES (%s,%s)"%(hotelid,empid)
+        cur.execute(query)
+        con.commit()
+        print("Successfully added employee to hotel")
+    except Exception as e:
+        print("Failed to connect employee to hotel")
+        print(e)
 
 def supervisor_exists(id):
     query = "SELECT ID FROM SUPERVISOR WHERE ID=%s"%(id)
