@@ -131,8 +131,7 @@ def add_club():
             print("Error at add_club(): Hotel does not exist")
             return
 
-        supid_query = "SELECT ID FROM SUPERVISOR WHERE ID = %d" % (
-            row["SUPID"])
+        supid_query = "SELECT ID FROM SUPERVISOR WHERE ID = %d" % (row["SUPID"])
         cur.execute(supid_query)
         if cur.fetchone() is None:
             print("Error at add_club(): No supervisor found")
