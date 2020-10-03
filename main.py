@@ -185,6 +185,25 @@ def add_room():
         print("Error while inserting into ROOM: %s", e)
 
 
+def add_member():
+    if True:
+        row = {}
+        print("Enter member details: ")
+        row["TIER"] = int(input("Tier: "))
+        row["FNAME"] = input("First name: ")
+        row["LNAME"] = input("Last name: ")
+        row["EMAILID"] = input("Email: ")
+        row["DOB"] = input("Date of birth (YYYY-MM-DD): ")
+        row["STAYS"] = int(input("Stays: "))
+
+        query = "INSERT INTO MEMBERS (TIER, FNAME, LNAME, EMAILID, DOB, STAYS) values (%d, '%s', '%s', '%s', \'%s\', %d)" % (row["TIER"], row["FNAME"], row["LNAME"], row["EMAILID"], row["DOB"], row["STAYS"])
+        print("Query: ", query)
+        cur.execute(query)
+        con.commit()
+        print("Inserted to database")
+    # except Exception as e:
+    #     print("Error while add_member(): ", e)
+
 """
 ------END ABHISHEKH------
 """
@@ -206,6 +225,9 @@ def dispatch(ch):
     
     elif(ch == 6):
         add_room()
+
+    elif (ch == 11):
+        add_member()
 
     else:
         print("Error: Invalid Option")
@@ -244,14 +266,14 @@ while(1):
                 print("1. Manage employees")
                 print("2. Add Hotel")  # Add Hotel
                 print("3. Add a Club")  # ABHISHEKH
-                print("4. Check in a Guest")
+                print("4. Check in a Guest")  # Add 1 to corresponding MEMBER.STAYS
                 print("5. Check out a Guest")
                 print("6. Add a room to a hotel")  # ABHISHEKH
                 print("7. Guest registering to club")
                 print("8. Add monthly finance")
                 print("9. Generate profit report")
                 print("10. Generate Guest Bill")
-                print("11. Add a Member Guest")
+                print("11. Add a Member Guest")  # ABHISHEKH
                 print("12. Logout")
                 ch = int(input("Enter choice> "))
                 tmp = sp.call('clear', shell=True)
