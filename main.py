@@ -232,6 +232,99 @@ def add_member():
     #     print("Error while add_member(): ", e)
 
 
+def add_finances():
+    """
+        +--------------+------+------+-----+---------+-------+
+    | Field        | Type | Null | Key | Default | Extra |
+    +--------------+------+------+-----+---------+-------+
+    | HOTELID      | int  | NO   | PRI | NULL    |       |
+    | MONTH        | int  | NO   | PRI | NULL    |       |
+    | YEAR         | int  | NO   | PRI | NULL    |       |
+    | ELEC_BILL    | int  | NO   | MUL | NULL    |       |
+    | HOTEL_BILL   | int  | NO   |     | NULL    |       |
+    | EMP_EXP      | int  | NO   |     | NULL    |       |
+    | SERVICE_EXP  | int  | NO   |     | NULL    |       |
+    | TOTAL_INCOME | int  | NO   |     | NULL    |       |
+    +--------------+------+------+-----+---------+-------+
+
+
+    mysql> desc EXPENDITURE;
+    +--------------+------+------+-----+---------+-------+
+    | Field        | Type | Null | Key | Default | Extra |
+    +--------------+------+------+-----+---------+-------+
+    | ELEC_BILL    | int  | NO   | PRI | NULL    |       |
+    | HOTEL_BILL   | int  | NO   | PRI | NULL    |       |
+    | EMP_EXP      | int  | NO   | PRI | NULL    |       |
+    | SERVICE_EXP  | int  | NO   | PRI | NULL    |       |
+    | TOTAL_EXP    | int  | NO   | MUL | NULL    |       |
+    | TOTAL_INCOME | int  | NO   | PRI | NULL    |       |
+    +--------------+------+------+-----+---------+-------+
+    6 rows in set (0.00 sec)
+
+    """
+    if True:
+        row = {}
+        print("Enter finance details: ")
+        row["HOTELID"] = int(input("HOTEL ID: "))
+        row["MONTH"] = int(input("MONTH: "))
+        row["YEAR"] = int(input("YEAR: "))
+        row["ELEC_BILL"] = int(input("Electricity bill: "))
+        row["HOTEL_BILL"] = int(input("Hotel bill: "))
+        row["EMP_EXP"] = int(input("Employee Expenditure: "))
+        row["SERVICE_EXP"] = int(input("Service expenditure: "))
+        row["TOTAL_INCOME"] = int(input("Total income: "))
+
+        if not hotel_exists(row["HOTELID"]):
+            print("Error while adding finances: No such hotel exists")
+            return
+
+
+        #  EXPENDITURE
+        expenditure_query_sel = "SELECT TOTAL_EXP FROM EXPENDITURE WHERE ELEC_BILL = %d AND HOTEL_BILL = %d AND SERVICE_EXP = %d AND TOTAL_INCOME = %d AND EMP_EXP = %d" % (
+            row["ELEC_BILL"],
+            row["HOTEL_BILL"],
+            row["SERVICE_EXP"],
+            row["TOTAL_INCOME"],
+            row["EMP_EXP"]
+        )
+
+        cur.execute(expenditure_query_sel)
+        total_exp = 0
+        expenditure_query_res = cur.fetchone()
+        if expenditure_query_res is None:
+            total_exp = row["ELEC_BILL"] + row["HOTEL_BILL"] + row["SERVICE_EXP"] + row["TOTAL_INCOME"] + row["EMP_EXP"]
+            expenditure_query_ins = "INSERT INTO EXPENDITURE VALUES (%d, %d, %d, %d, %d, %d)" % (row["ELEC_BILL"], row["HOTEL_BILL"], row["EMP_EXP"], row["SERVICE_EXP"], total_exp, row["TOTAL_INCOME"])
+            cur.execute(expenditure_query_ins)
+
+            cur.execute(expenditure_query_sel)
+            expenditure_query_res = cur.fetchone()
+        
+        total_exp = expenditure_query_res["TOTAL_EXP"]
+        
+        #   PROFIT
+        profit_query = "SELECT * FROM PROFIT WHERE TOTAL_EXP = %d AND TOTAL_INCOME = %d" % (total_exp, row["TOTAL_INCOME"])
+        cur.execute(profit_query)
+
+        if cur.fetchone() is None:
+            profit_query = "INSERT INTO PROFIT (TOTAL_EXP, TOTAL_INCOME, TOTAL_PROFIT) VALUES (%d, %d, %d)" % (total_exp, row["TOTAL_INCOME"], total_exp + row["TOTAL_INCOME"])
+            cur.execute(profit_query)
+
+        finances_query = "INSERT INTO FINANCES(HOTELID, MONTH, YEAR, ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME) values (%d, %d,%d,%d,%d,%d,%d,%d)" %(
+            row["HOTELID"],
+            row["MONTH"],
+            row["YEAR"],
+            row["ELEC_BILL"],
+            row["HOTEL_BILL"],
+            row["EMP_EXP"],
+            row["SERVICE_EXP"],
+            row["TOTAL_INCOME"]
+        )
+
+        cur.execute(finances_query)
+        con.commit()
+        print("Inserted into database")
+
+
 """
 ------END ABHISHEKH------
 """
@@ -292,7 +385,7 @@ while(1):
                 print("5. Check out a Guest")
                 print("6. Add a room to a hotel")  # ABHISHEKH
                 print("7. Guest registering to club")
-                print("8. Add monthly finance")
+                print("8. Add monthly finance")  # ABHISHEKH
                 print("9. Generate profit report")
                 print("10. Generate Guest Bill")
                 print("11. Add a Member Guest")  # ABHISHEKH
@@ -305,12 +398,13 @@ while(1):
                     add_hotel()
                 elif ch == 6:
                     add_room()
-                 elif (ch == 11):
+                elif (ch == 11):
                     add_member()
+                elif (ch == 8):
+                    add_finances()
                 elif ch == 12:
                     break
-                else:
-                    tmp = input("Enter any key to CONTINUE>")
+                tmp = input("Enter any key to CONTINUE>")
 
     # except:
     #     tmp = sp.call('clear', shell=True)
