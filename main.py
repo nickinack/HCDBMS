@@ -3,6 +3,19 @@ import pymysql
 import pymysql.cursors
 
 
+
+"""
+git checkout -b abhishekh4
+git branch
+git status
+git add .
+git push
+
+
+
+"""
+
+
 def add_hotel():
     """
     Add a new hotel
@@ -131,8 +144,7 @@ def add_club():
             print("Error at add_club(): Hotel does not exist")
             return
 
-        supid_query = "SELECT ID FROM SUPERVISOR WHERE ID = %d" % (
-            row["SUPID"])
+        supid_query = "SELECT ID FROM SUPERVISOR WHERE ID = %d" % (row["SUPID"])
         cur.execute(supid_query)
         if cur.fetchone() is None:
             print("Error at add_club(): No supervisor found")
