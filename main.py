@@ -74,6 +74,10 @@ def hireAnEmployee():
 ------ABHISHEKH---------
 """
 
+def hotel_exists(id):
+    hotel_query = "SELECT ID FROM HOTEL WHERE ID = %d" % (id)
+    cur.execute(hotel_query)
+    return cur.fetchone() is not None
 
 def add_club():
     """
@@ -92,7 +96,7 @@ def add_club():
     KEY `SUPID` (`SUPID`),
     CONSTRAINT `CLUBS_ibfk_1` FOREIGN KEY (`SUPID`) REFERENCES `SUPERVISOR` (`ID`)
     """
-    try:  # try-catch exempted for testing purposes
+    if True:  # try-catch exempted for testing purposes
         # Takes emplyee details as input
         row = {}
         print("Enter club's details: ")
@@ -105,6 +109,16 @@ def add_club():
         row["COST_PER_HOUR"] = int(input("Cost per hour: "))
         row["SUPID"] = int(input("Supervisor ID: "))
 
+        if not hotel_exists(row["HOTELID"]):
+            print("Error at add_club(): Hotel does not exist")
+            return
+        
+        supid_query = "SELECT ID FROM SUPERVISOR WHERE ID = %d" % (row["SUPID"])
+        cur.execute(supid_query)
+        if cur.fetchone() is None:
+            print("Error at add_club(): No supervisor found")
+            return
+
         query = "INSERT INTO CLUBS(HOTELID,  TYPE, SERVICE_EXP, MONTH, YEAR, TOTAL_INCOME, COST_PER_HOUR, SUPID) VALUES('%d', '%s', '%d', '%d', '%d', '%d', '%d', %d)" % (
             row["HOTELID"], row["TYPE"], row["SERVICE_EXP"], row["MONTH"], row["YEAR"], row["TOTAL_INCOME"], row["COST_PER_HOUR"], row["SUPID"])
 
@@ -114,8 +128,8 @@ def add_club():
 
         print("Inserted Into Database")
 
-    except Exception as e:
-        print("Error while inserting into clubs: %s", e)
+    # except Exception as e:
+    #     print("Error while inserting into clubs: %s", e)
 
 
 
@@ -140,20 +154,16 @@ def add_room():
         row["RATE"] = int(input("Room rate: "))
         row["MAX_GUESTS"] = int(input("Max guests allowed: "))
 
-        hotel_query = "SELECT ID FROM HOTEL WHERE ID = %d" % (row["HOTELID"])
-        cur.execute(hotel_query)
-        if cur.fetchone() is None:
-            print("ERROR AT add_room(): NO SUCH HOTEL FOUND")
+        if not hotel_exists(row["HOTELID"]):
+            print("Error at add_room(): Hotel does not exist")
             return
 
-        query_room_type = "SELECT TYPE FROM ROOM_TYPE where RATE = %d and MAX_GUESTS = %d" % 
-            (row["RATE"], row["MAX_GUESTS"])
+        query_room_type = "SELECT TYPE FROM ROOM_TYPE where RATE = %d and MAX_GUESTS = %d" % (row["RATE"], row["MAX_GUESTS"])
         cur.execute(query_room_type)
         room_type = cur.fetchone()
 
         if room_type is None:
-            room_type_insert = "INSERT INTO ROOM_TYPE (RATE, MAX_GUESTS) VALUES (%d, %d)" % 
-                (row["RATE"], row["MAX_GUESTS"])
+            room_type_insert = "INSERT INTO ROOM_TYPE (RATE, MAX_GUESTS) VALUES (%d, %d)" % (row["RATE"], row["MAX_GUESTS"])
             cur.execute(room_type_insert)
 
             cur.execute(query_room_type)
