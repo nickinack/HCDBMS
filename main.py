@@ -1233,6 +1233,38 @@ def cost_guest():
     except Exception as e:
         print("Couldn't generate bill \n")
         print(e)
+
+def view_employees(hId):	
+    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s)" % (	
+        hId)	
+    # print(query)	
+    cur.execute(query)	
+    rows = cur.fetchall	
+    for row in cur:	
+        print(row)	
+        print(row["ID"], row["FNAME"], row["LNAME"])	
+    print("\n")	
+
+
+def view_fired_employees(hId):	
+    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s) and status != 'employed" % (	
+        hId)	
+    cur.execute(query)	
+    rows = cur.fetchall	
+    for row in cur:	
+        # print(row)	
+        print(row["ID"], row["FNAME"], row["LNAME"])	
+    print("\n")	
+
+def view_service_staff(hId):	
+    query = "select * from employee where id in (select id from service_staff) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (	
+        hId)	
+    cur.execute(query)	
+    rows = cur.fetchall	
+    for row in cur:	
+        # print(row)	
+        print(row["ID"], row["FNAME"], row["LNAME"])	
+    print("\n")
         
     
 def handle_views():
