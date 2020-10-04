@@ -124,7 +124,7 @@ def fireAnEmployee():
             print("Employee already fired")
             return
 
-        if manager_exists(id):
+        elif manager_exists(id):
             query = "DELETE FROM MANAGER WHERE ID=%s"%(id)
             position = "Manager"
             if manages_supervisor(id):
@@ -140,7 +140,7 @@ def fireAnEmployee():
                 else:
                     return
 
-        if service_staff_exists(id):
+        elif service_staff_exists(id):
             query = "DELETE FROM SERVICE STAFF WHERE ID=%s"%(id)
             position = "Service staff"
             if service_staff_room_exists(id):
@@ -150,7 +150,7 @@ def fireAnEmployee():
                 else:
                     return 
 
-        if supervisor_exists(id):
+        elif supervisor_exists(id):
             query = "DELETE FROM SUPERVISOR WHERE ID=%s"%(id)
             position = "Supervisor"
             if supervises_service_staff(id):
@@ -355,130 +355,40 @@ def change_supervisor_club(id):
         print("Failed to change Supervisor \n")
         print(e)
 
-def modify_manager_for_one_supervisor(id):
-    '''
-    Modifies manager for one supervisor
-    '''
-    try:
-        managerid = input("Enter the new manager id for the supervisor: ")
-        if (not manager_exists(managerid)) or (not emp_exists(managerid)) or (emp_fired(managerid)):
-            print("Manager does not exist in the database / is fired \n")
-            return
-        
-        query = "UPDATE SUPERVISOR SET MANAGERID=%s WHERE ID=%s"%(managerid,id)
-        cur.execute(query)
-        con.commit()
-        print("Successully modified the manager for supervisor \n")
-    except Exception as e:
-        print("Failed to modify \n")
-        print(e)
-    
-
-def modify_supervisor_for_one_service_staff(id):
-    '''
-    Modifies supervisor of one service staff member
-    '''
-    try:
-        supid = input("Enter the new supervisor id for the service staff: ")
-        if (not supervisor_exists(id)) or (not emp_fired(supid)) or (emp_fired(supid)):
-            print("Supervisor does not exis in the database / is fired")
-            return
-
-        query = "UPDATE SERVICE_STAFF SET SUPID=%s WHERE ID=%s"%(supid,id)
-        cur.execute(query)
-        con.commit()
-        print("Successfully modieifed the supervisor for the service staff \n")
-    except Exception as e:
-        print("Failed to modify \n")
-        print(e)
-
-def modify_service_staff_for_one_room():
-    '''
-    Modifies service staff for one room
-    '''
-    try:
-        id = int(input("Enter employee ID: "))
-        if (not service_staff_exists(id)) or (not emp_exists(id)) or (emp_fired(id)):
-            print("Employee does not exist / is not service staff / is fired") 
-        hotelid = "SELECT HOTELID FROM BELONGS_TO WHERE EMPID=%s"%(id)
-        roomno = int(input("Enter Room number: "))
-        if not (room_hotel_exists(roomno,hotelid)):
-            print("Room does not exist in the hotel in which the employee works at \n")
-            return
-        query = "UPDATE SERVICE_STAFF_ROOM SET SERVICE_STAFF_ID=%s WHERE ROOMNO=%s AND HOTELID=%s"%(id,roomno,hotelid)
-        cur.execute()
-        con.commit()
-    except Exception as e:
-        print("Failed to modify service staff details for the room \n")
-        print(e)
-    
-
-def modify_employee():
+def modify_employee(id):
     '''
     Modify an employee details (other than pkey)
     '''
-    try:
-        id = int(input("Enter the ID of employee: "))
-        print("The following is the list of attributes you can change in an employee: ")
-        position = ""
-        if manager_exists(id):
-            position = "manager"
-        elif supervisor_exists(id):
-            position = "supervisor"
-        elif service_staff_exists(id):
-            position = "service_staff"
-        print("e1. Fname")
-        print("e2. Lname")
-        print("e3. Phone")
-        print("e4. Email")
-        print("e5. DOB")
-        print("e6. Salary")
-        if position == "supervisor":
-            print("e7. Department: ")
-            print("e8. ManagerID: ")
-        if position == "service_staff":
-            print("e7. Supervisor")
-            print("e8. Department")
-        
-        attr = input("Enter the attribute you want to change: ")
-        attr_dict = {
-            "e1" : "Fname",
-            "e2" : "Lname",
-            "e3" : "Phone",
-            "e4" : "Email",
-            "e5" : "DOB",
-            "e6" : "SALARY"
-        }
-
-        query = ""
-        if not (attr == "e7" or attr == "e8"):
-            change = input("Enter the new value for the attribute: ")
-            query = "UPDATE EMPLOYEE SET %s=%s WHERE ID=%s"%(attr_dict[attr],change,id)       
-
-        elif (attr == "e7" or attr == "e8"):
-            if position == "supervisor" and attr == "e7":
-                change = input("Enter the new value for department: ")
-                query = "UPDATE SUPERVISOR SET DEPT=%s WHERE ID=%s"%(change,id)
-
-            if position == "supervisor" and attr == "e8":
-                modify_manager_for_one_supervisor(id)
-                return
-
-            if position == "service_staff" and attr == "e7":
-                modify_supervisor_for_one_service_staff(id)
-                return
-
-            if position == "service_staff" and attr == "e8":
-                change = input("Enter nrew value for department")
-                query = "UPDATE SERVICE_STAFF SET DEPT=%s WHERE ID=%s"%(change,id)
-
+    print("The following is the list of attributes you can change in an employee: ")
+    position = input("Enter the position of the employee: ")
+    print("e1. Fname")
+    print("e2. Lname")
+    print("e3. Phone")
+    print("e4. Email")
+    print("e5. DOB")
+    print("e6. Salary")
+    if position == "supervisor":
+        print("e7. Department: ")
+        print("e8. ManagerID: ")
+    if position == "service_staff":
+        print("e7. Supervisor")
+        print("e8. Room Number")
+    
+    attr = input("Enter the attribute you want to change")
+    
+    if not (attr == "e7" or attr == "e8"):
+        change = print("Enter the new value for the attribute")
+        query = "UPDATE EMPLOYEE SET %s=%s WHERE ID=%s"%(attr,change,attr)
         cur.execute(query)
         con.commit()
-        print("Successfully modified detals\n")
 
-    except Exception as e:
-        print("Failed to insert into database \n")
-        print(e)
+    # elif (attr == "e7" or attr == "e8"):
+        
+
+    
+
+    
+
 
 '''
 Helper functions start 
@@ -506,6 +416,23 @@ def hotel_exists(id):
 def room_hotel_exists(roomno, hotelid):
     room_query = "SELECT * FROM ROOMS WHERE NUMBER = %d AND HOTELID = %d" % (roomno, hotelid)
     cur.execute(room_query)
+    return cur.fetchone() is not None
+
+def is_room_empty(roomno, hotelid):
+    room_status_query = "SELECT STATUS FROM ROOMS WHERE NUMBER = %d AND HOTELID = %d" % (roomno, hotelid)
+    cur.execute(room_status_query)
+    query_res = cur.fetchone()
+
+    if query_res is None:
+        return False
+    
+    return query_res["STATUS"] == b'\x00'
+
+def guest_exists(roomno, hotelid, checkin, checkout):
+    query = "SELECT * FROM GUESTS WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (
+        roomno, hotelid, checkin, checkout
+    )
+    cur.execute(query)
     return cur.fetchone() is not None
 
 def emp_exists(id):
@@ -557,28 +484,10 @@ def supervises_clubs(id):
     cur.execute(query)
     return cur.fetchone() is not None
 
-def is_room_empty(roomno, hotelid):	
-    room_status_query = "SELECT STATUS FROM ROOMS WHERE NUMBER = %d AND HOTELID = %d" % (roomno, hotelid)	
-    cur.execute(room_status_query)	
-    query_res = cur.fetchone()	
-
-    if query_res is None:	
-        return False	
-
-    return query_res["STATUS"] == b'\x00'	
-
-def guest_exists(roomno, hotelid, checkin, checkout):	
-    query = "SELECT * FROM GUESTS WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (	
-        roomno, hotelid, checkin, checkout	
-    )	
-    cur.execute(query)	
+def member_exists(id):
+    query = "SELECT * FROM MEMBERS WHERE ID = %d" % (id)
+    cur.execute(query)
     return cur.fetchone() is not None
-
-def member_exists(id):	
-    query = "SELECT * FROM MEMBERS WHERE ID = %d" % (id)	
-    cur.execute(query)	
-    return cur.fetchone() is not None
-
 '''
 Helper functions end
 '''
@@ -654,9 +563,9 @@ def add_room():
         if not hotel_exists(row["HOTELID"]):
             print("Error at add_room(): Hotel does not exist")
             return
-        
-        if room_hotel_exists(row["NUMBER"], row["HOTELID"]):	
-            print("Room already exists in hotel")	
+
+        if room_hotel_exists(row["NUMBER"], row["HOTELID"]):
+            print("Room already exists in hotel")
             return
 
         query_room_type = "SELECT TYPE FROM ROOM_TYPE where RATE = %d and MAX_GUESTS = %d" % (row["RATE"], row["MAX_GUESTS"])
@@ -855,7 +764,6 @@ def remove_service_staff_room():
         print("Successfully un-assigned")
     # except Exception as e:
     #    print(e)
-
 
 
 def add_guest():
@@ -1065,7 +973,7 @@ def add_guest_club():
 
         print("Guest successfully registered")
 
-        
+
 def dispatch():
     """
     Function that maps helper functions to option entered
@@ -1076,7 +984,6 @@ def dispatch():
     print("c. Assign service staff to room")
     print("d. Remove service staff from room")
     print("e. Alter Employee Details")
-    print("f. Modify service staff for room")
     ch = input("Enter choice: ")
     if(ch == "a"):
         hireAnEmployee()
@@ -1091,112 +998,11 @@ def dispatch():
         remove_service_staff_room()
 
     elif (ch == "e"):
-        modify_employee()
-    
-    elif (ch == "f"):
-        modify_service_staff_for_one_room()
+        pass
+
 
     else:
         print("Error: Invalid Option")
-
-def add_guest():	
-    if True:	
-        row = {}	
-        print("Enter Guest details: ")	
-        row["ROOMNO"] = int(input("Room number: "))	
-        row["HOTELID"] = int(input("Hotel ID: "))	
-        row["ISMEMBER"] = int(input("Is member(1/0): "))	
-        row["MEMBERID"] = 0	
-        if row["ISMEMBER"] == 0:	
-            row["MEMBERID"] = None	
-        else:	
-            row["MEMBERID"] = int(input("Member ID: "))	
-        row["CHECKIN"] = input("Checkin date: ")	
-        row["CHECKOUT"] = input("Checkout date: ")	
-        row["COST"] = 0	
-        row["CLUB_HOURS"] = 0	
-
-        # Check valid room	
-        if not room_hotel_exists(row["ROOMNO"], row["HOTELID"]):	
-            print("Error adding guest: No such room found")	
-            return	
-        # Check valid member ID	
-        if row["ISMEMBER"] and (not member_exists(row["MEMBERID"])):	
-            print("Error adding member guest: Member ID incorrect")	
-            return	
-
-        # Check room empty	
-        if not is_room_empty(row["ROOMNO"], row["HOTELID"]):	
-            print("Error adding guest: Room is occupied")	
-            return	
-
-        if (row["ISMEMBER"]):	
-            query = "INSERT INTO GUESTS (ROOMNO, HOTELID, IS_MEMBER, MEMBERID, CHECKIN, CHECKOUT, COST, CLUB_HOURS) VALUES (%d, %d, %d, %d, '%s', '%s', %d, %d)" % (	
-                row["ROOMNO"],	
-                row["HOTELID"],	
-                row["ISMEMBER"],	
-                row["MEMBERID"],	
-                row["CHECKIN"],	
-                row["CHECKOUT"],	
-                row["COST"],	
-                row["CLUB_HOURS"]	
-            )	
-        else:	
-            query = "INSERT INTO GUESTS (ROOMNO, HOTELID, IS_MEMBER, CHECKIN, CHECKOUT, COST, CLUB_HOURS) VALUES (%d, %d, %d, '%s', '%s', %d, %d)" % (	
-                row["ROOMNO"],	
-                row["HOTELID"],	
-                row["ISMEMBER"],	
-                row["CHECKIN"],	
-                row["CHECKOUT"],	
-                row["COST"],	
-                row["CLUB_HOURS"]	
-            )	
-
-        cur.execute(query)	
-
-        # Set room status as occupied	
-        update_rooms_status = "UPDATE ROOMS SET STATUS = 1 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])	
-        cur.execute(update_rooms_status)	
-
-        if row["ISMEMBER"]:  # increment number of stays	
-            member_query = "UPDATE MEMBERS SET STAYS = STAYS + 1 WHERE ID = %d" % (row["MEMBERID"])	
-            cur.execute(member_query)	
-            print("Member stays updated")	
-
-        con.commit()	
-
-        print("Guest checked in.")	
-
-
-def remove_guest():	
-    if True:	
-        row = {}	
-        print("Enter Guest details: ")	
-        row["ROOMNO"] = int(input("Room number: "))	
-        row["HOTELID"] = int(input("Hotel ID: "))	
-        row["CHECKIN"] = input("Checkin date: ")	
-        row["CHECKOUT"] = input("Checkout date: ")	
-
-        if not guest_exists(row["ROOMNO"], row["HOTELID"], row["CHECKIN"], row["CHECKOUT"]):	
-            print("Guest does not exist")	
-            return	
-
-        query = "DELETE FROM GUESTS WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (	
-            row["ROOMNO"],	
-            row["HOTELID"],	
-            row["CHECKIN"],	
-            row["CHECKOUT"]	
-        )	
-        cur.execute(query)	
-
-        update_rooms_status = "UPDATE ROOMS SET STATUS = 0 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])	
-        cur.execute(update_rooms_status)	
-
-        con.commit()	
-
-
-        print(update_rooms_status)	
-        print("Guest successfully checked out. Room emptied.")	
 
 
 def handle_views():
@@ -1216,10 +1022,11 @@ def handle_views():
 
     if (choice == 1):
         print("1.  Employees")
-        print("2. Fired employees")
+        print("2.  Fired employees")
         print("3.  Service staff")
         print("4.  Supervisors")
         print("5.  Managers")
+
 
     if (choice == 2):
         print("1.  Guests")
@@ -1298,9 +1105,9 @@ while(1):
                     add_member()
                 elif (ch == 8):
                     add_finances()
-                elif (ch == 4):  # TODO: Compute cost	
-                    add_guest()	
-                elif (ch == 5):	
+                elif (ch == 4):  # TODO: Compute cost
+                    add_guest()
+                elif (ch == 5):
                     remove_guest()
                 elif ch == 20:
                     break
