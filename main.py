@@ -737,6 +737,9 @@ def add_finances():
 
     """
     if True:
+        query = "SELECT SUM(SALARY) FROM EMPLOYEE WHERE NOT STATUS='FIRED'"
+        cur.execute(query)
+        salary_cnt = cur.fetchone()
         row = {}
         print("Enter finance details: ")
         row["HOTELID"] = int(input("HOTEL ID: "))
@@ -745,7 +748,7 @@ def add_finances():
         row["ELEC_BILL"] = int(input("Electricity bill: "))
         row["HOTEL_BILL"] = int(input("Hotel bill: "))
         row["EMP_EXP"] = int(input("Employee Expenditure: "))
-        row["SERVICE_EXP"] = int(input("Service expenditure: "))
+        row["SERVICE_EXP"] = int(salary_cnt["SUM(SALARY)"])
         row["TOTAL_INCOME"] = int(input("Total income: "))
 
         if not hotel_exists(row["HOTELID"]):
