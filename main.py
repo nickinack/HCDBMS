@@ -640,6 +640,10 @@ def add_room():
         if not hotel_exists(row["HOTELID"]):
             print("Error at add_room(): Hotel does not exist")
             return
+        
+        if room_hotel_exists(row["NUMBER"], row["HOTELID"]):	
+            print("Room already exists in hotel")	
+            return
 
         query_room_type = "SELECT TYPE FROM ROOM_TYPE where RATE = %d and MAX_GUESTS = %d" % (row["RATE"], row["MAX_GUESTS"])
         cur.execute(query_room_type)
