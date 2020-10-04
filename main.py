@@ -392,6 +392,13 @@ def is_room_empty(roomno, hotelid):
     
     return query_res["STATUS"] == b'\x00'
 
+def guest_exists(roomno, hotelid, checkin, checkout):
+    query = "SELECT * FROM GUESTS WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (
+        roomno, hotelid, checkin, checkout
+    )
+    cur.execute(query)
+    return cur.fetchone() is not None
+
 def emp_exists(id):
     query = "SELECT ID FROM EMPLOYEE WHERE ID=%s"%(id)
     cur.execute(query)
@@ -771,6 +778,35 @@ def add_guest():
         con.commit()
 
 
+def remove_guest():
+    if True:
+        row = {}
+        print("Enter Guest details: ")
+        row["ROOMNO"] = int(input("Room number: "))
+        row["HOTELID"] = int(input("Hotel ID: "))
+        row["CHECKIN"] = input("Checkin date: ")
+        row["CHECKOUT"] = input("Checkout date: ")
+
+        if not guest_exists(row["ROOMNO"], row["HOTELID"], row["CHECKIN"], row["CHECKOUT"]):
+            print("Guest does not exist")
+            return
+        
+        query = "DELETE FROM GUESTS WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (
+            row["ROOMNO"],
+            row["HOTELID"],
+            row["CHECKIN"],
+            row["CHECKOUT"]
+        )
+        cur.execute(query)
+        con.commit()
+
+        update_rooms_status = "UPDATE ROOMS SET STATUS = 0 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])
+        cur.execute(update_rooms_status)
+
+        print(update_rooms_status)
+        print("Guest successfully checked out. Room emptied.")
+
+
 def dispatch():
     """
     Function that maps helper functions to option entered
@@ -897,6 +933,8 @@ while(1):
                     add_finances()
                 elif (ch == 4):  # TODO: Compute cost
                     add_guest()
+                elif (ch == 5):
+                    remove_guest()
                 elif ch == 20:
                     break
                 tmp = input("Enter any key to CONTINUE>")
