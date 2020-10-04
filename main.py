@@ -69,6 +69,9 @@ def hireAnEmployee():
         row["FNAME"] = name[0]
         row["LNAME"] = name[1]
         row["ID"] = input("Input id: ")
+        if emp_exists(id) and emp_fired(id):
+            query = "UPDATE EMPLOYEE SET STATUS='Currently Employed' WHERE ID=%s"%(row["ID"])
+            return
         row["DOB"] = input("Birth Date (YYYY-MM-DD): ")
         row["EMAIL"] = input("email: ")
         row["JOINDATE"] = input("joining date (YYYY-MM-DD): ")
@@ -99,6 +102,85 @@ def hireAnEmployee():
         print(e)
 
     return
+
+def fireAnEmployee():
+    '''
+    Fire an employee
+    '''
+    try:
+        id = input("Enter employee ID: ")
+        query = ""
+        position = ""
+        if not emp_exists(id):
+            print("Employee does not exist in the database")
+            return
+
+        elif emp_fired(id):
+            print("Employee already fired")
+            return
+
+        elif manager_exists(id):
+            query = "DELETE FROM MANAGER WHERE ID=%s"%(id)
+            position = "Manager"
+            if manages_supervisor(id):
+                input_flag = input("Manager is currently managing list of supervisors; would you like to change the manager for these supervisors (yes/no)?: ")
+                if input_flag == "yes":
+                    change_supervsior_manager(id)
+                else:
+                    return
+            if manages_hotel(id):
+                input_flag = input("Manager manages the hotel; would you like to change the manager for the hotel (yes/no)?: ")
+                if input_flag == "yes":
+                    change_hotel_manager(id)
+                else:
+                    return
+
+        elif service_staff_exists(id):
+            query = "DELETE FROM SERVICE STAFF WHERE ID=%s"%(id)
+            position = "Service staff"
+            if service_staff_room_exists(id):
+                input_flag = input("Service staff is currently involved with room cleaning services; would you like to change the service staff for these rooms (yes/no): ")
+                if input_flag == "yes":
+                    change_room_service_staff(id)
+                else:
+                    return 
+
+        elif supervisor_exists(id):
+            query = "DELETE FROM SUPERVISOR WHERE ID=%s"%(id)
+            position = "Supervisor"
+            if supervises_service_staff(id):
+                input_flag = input("Supervisor is supervising some service staff members; would you like to change the service staff for these employees (yes/no)?: ")
+                if input_flag == "yes":
+                    change_supervisor_service_staff(id)
+                else:
+                    return
+            if supervises_clubs(id):
+                input_flag = input("Supervisor is supervising clubs; would you like to change the supervisor for the clubs associated (yes/no)?: ")
+                if input_flag == "yes":
+                    pass
+                else:
+                    return
+
+        changeEmpStatus(id)
+        cur.execute(query)
+        con.commit()
+        print(position , " fired; records still present with status fired")
+    
+    except Exception as e:
+        con.rollback()
+        print("Failed to remove employee \n")
+        print(e)
+
+def changeEmpStatus(id):
+    try:
+        query = "UPDATE EMPLOYEE SET STATUS='FIRED' WHERE ID=%s"%(id)
+        cur.execute(query)
+        con.commit()
+        print("Successfully changes the employee's status")
+    except Exception as e:
+        con.rollback()
+        print("Failed to change the status of the employee")
+        print(e) 
 
 def add_supervisor(id):
     '''
@@ -161,11 +243,6 @@ def add_manager(id):
         con.commit()
         print(e)
 
-def manager_exists(id):
-    query = "SELECT ID FROM MANAGER WHERE ID=%s"%(id)
-    cur.execute(query)
-    return cur.fetchone() is not None
-
 def belongs_to(hotelid , empid):
     '''
     Implement Belongs to relationship
@@ -179,8 +256,119 @@ def belongs_to(hotelid , empid):
         print("Failed to connect employee to hotel")
         print(e)
 
+def change_supervsior_manager(id):
+    '''
+    Change the manager associated with a supervisor
+    '''
+    try:
+        if (not manager_exists(id)) or (not emp_exists(id)) or (emp_fired(id)):
+            print("Manager does not exist in the manager database / is fired")
+            return
+        new_managerid = input("Select the new manager ID to whom you want to assign these supervisors to: ")
+        if (not manager_exists(new_managerid)) or (not emp_exists(new_managerid)) or (emp_fired(new_managerid)):
+            print("New manager ID invalid")
+            return
+        query = "UPDATE SUPERVISOR SET MANAGERID=%s WHERE MANAGERID=%s"%(new_managerid,id)
+        cur.execute(query)
+        con.commit()
+    except Exception as e:
+        print("Failed to change manager \n")
+        print(e)
+
+def change_hotel_manager(id):
+    '''
+    Change the hotel manager
+    '''
+    try:
+        if (not manager_exists(id)) or (not emp_exists(id)) or (emp_fired(id)):
+            print("Manager does not exist in the manager database / is fired")
+            return
+        new_managerid = input("Select the new manager ID who will be taking care of the hotel: ")
+        if (not manager_exists(new_managerid)) or (not emp_exists(new_managerid)) or (emp_fired(new_managerid)):
+            print("New Manager ID invalid")
+            return
+        query = "UPDATE HOTEL SET MANAGERID=%s WHERE MANAGERID=%s"%(new_managerid,id)
+        cur.execute(query)
+        con.commit()
+    except Exception as e:
+        print("Failed to change manager \n")
+        print(e)
+
+def change_room_service_staff(id):
+    '''
+    Change the service staff associated with rooms
+    '''
+    try:
+        if(not service_staff_exists(id)) or (not emp_exists(id)) or (emp_fired(id)):
+            print("Service staff does not exist in the service staff database / is fired")
+            return
+        new_service_staff_id = input("Enter the new service staff ID who will be taking care of the rooms: ")
+        if (not service_staff_exists(new_service_staff_id)) or (not emp_exists(new_service_staff_id)) or (emp_fired(new_service_staff_id)):
+            print("New Service staff ID is invalid")
+        query = "UPDATE SERVICE_STAFF_ROOM SET SERVICE_STAFF_ID=%s WHERE SERVICE_STAFF_ID=%s"%(new_service_staff_id,id)
+        cur.execute(query)
+        con.commit()
+    except Exception as e:
+        print("Failed to change Service staff \n")
+        print(e)
+
+def change_supervisor_service_staff(id):
+    '''
+    Change the supervisor for service staff
+    '''
+    try:
+        if (not supervisor_exists(id)) or (not emp_exists(id)) or (emp_fired(id)):
+            print("Supervisor does not exist in the supervisor database / is fired")
+            return 
+        new_supid = input("Enter te new supervisor ID who will be supervising service staff: ")
+        if (not supervisor_exists(new_supid)) or (not emp_exists(new_supid)) or (emp_fired(new_supid)):
+            print("New Supervisor ID is invalid")
+            return
+        query = "UPDATE SERVICE_STAFF SET SUPID=%s WHERE SUPID=%s"%(new_supid,id)
+        cur.execute(query)
+        con.commit()
+    except Exception as e:
+        print("Failed to change Supervisor \n")
+        print(e)
+
+def change_supervisor_club(id):
+    '''
+    Change the supervisor associated with the club
+    '''
+    try:
+        if (not supervisor_exists(id)) or (not emp_exists(id)) or (emp_fired(id)):
+            print("Supervisor does not exist in the supervisor database / is fired")
+            return 
+        new_supid = input("Enter te new supervisor ID who will be supervising clubs: ")
+        if (not supervisor_exists(new_supid)) or (not emp_exists(new_supid)) or (emp_fired(new_supid)):
+            print("New Supervisor ID is invalid")
+            return
+        query = "UPDATE CLUBS SET SUPID=%s WHERE SUPID=%s"%(new_supid,id)
+        cur.execute(query)
+        con.commit()
+    except Exception as e:
+        print("Failed to change Supervisor \n")
+        print(e)
+
+def modify(table_name , attribute , pkey):
+    pass
+        
+
+'''
+Helper functions start 
+'''
+def manager_exists(id):
+    query = "SELECT ID FROM MANAGER WHERE ID=%s"%(id)
+    cur.execute(query)
+    return cur.fetchone() is not None
+
 def supervisor_exists(id):
     query = "SELECT ID FROM SUPERVISOR WHERE ID=%s"%(id)
+    cur.execute(query)
+    return cur.fetchone() is not None
+
+def service_staff_exists(id):
+    query = "SELECT ID FROM SERVICE_STAFF WHERE ID=%s"%(id)
     cur.execute(query)
     return cur.fetchone() is not None
 
@@ -188,6 +376,45 @@ def hotel_exists(id):
     hotel_query = "SELECT ID FROM HOTEL WHERE ID = %d" % (id)
     cur.execute(hotel_query)
     return cur.fetchone() is not None
+
+def emp_exists(id):
+    query = "SELECT ID FROM EMPLOYEE WHERE ID=%s"%(id)
+    cur.execute(query)
+    return cur.fetchone() is not None
+
+def emp_fired(id):
+    query = "SELECT STATUS FROM EMPLOYEE WHERE ID=%s"%(id)
+    cur.execute(query)
+    return cur.fetchone() == "FIRED"
+
+def manages_supervisor(id):
+    query = "SELECT MANAGERID FROM SUPERVISOR WHERE MANAGERID=%s"%(id)
+    cur.execute(query)
+    return cur.fetchone() is not None
+
+def supervises_service_staff(id):
+    query = "SELECT SUPID FROM SUPERVISOR WHERE SUPID=%s"%(id)
+    cur.execute(query)
+    return cur.fetchone() is not None
+
+def service_staff_room_exists(id):
+    query = "SELECT SERVICE_STAFF_ID FROM SERVICE_STAFF_ROOM WHERE SERVICE_STAFF_ID=%s"%(id)
+    cur.execute(query)
+    return cur.fetchone is not None
+
+def manages_hotel(id):
+    query = "SELECT ID FROM HOTEL WHERE MANAGERID=%s"%(id)
+    cur.execute(query)
+    return cur.fetchone() is not None
+
+def supervises_clubs(id):
+    query = "SELECT SUPID FROM CLUBS WHERE SUPID=%s"%(id)
+    cur.execute(query)
+    return cur.fetchone() is not None
+
+'''
+Helper functions end
+'''
 
 def add_club():
     """
@@ -412,7 +639,7 @@ def dispatch():
         hireAnEmployee()
    
     elif(ch == "b"):
-        pass
+        fireAnEmployee()
 
     else:
         print("Error: Invalid Option")
