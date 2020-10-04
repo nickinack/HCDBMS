@@ -1227,6 +1227,17 @@ def view_service_staff(hId):
         # print(row)
         print(row["ID"], row["FNAME"], row["LNAME"])
     print("\n")
+
+
+def view_supervisor(hId):
+    query = "select * from employee where id in (select id from supervisor) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
+        hId)
+    cur.execute(query)
+    rows = cur.fetchall
+    for row in cur:
+        # print(row)
+        print(row["ID"], row["FNAME"], row["LNAME"])
+    print("\n")
     
 def handle_views():
     print("Select from the following to retrieve information: ")
