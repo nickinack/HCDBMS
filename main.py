@@ -811,7 +811,14 @@ def add_guest():
         update_rooms_status = "UPDATE ROOMS SET STATUS = 1 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])
         cur.execute(update_rooms_status)
 
+        if row["ISMEMBER"]:  # increment number of stays
+            member_query = "UPDATE MEMBERS SET STAYS = STAYS + 1 WHERE ID = %d" % (row["MEMBERID"])
+            cur.execute(member_query)
+            print("Member stays updated")
+        
         con.commit()
+
+        print("Guest checked in.")
 
 
 def remove_guest():
@@ -837,7 +844,7 @@ def remove_guest():
 
         update_rooms_status = "UPDATE ROOMS SET STATUS = 0 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])
         cur.execute(update_rooms_status)
-        
+
         con.commit()
 
 
