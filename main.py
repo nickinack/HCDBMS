@@ -15,6 +15,7 @@ def add_hotel():
             id = input("Hotel ID: ")
             name = input("Name: ")
             managerid = input("Manager ID: ")
+            maanger_flag = ""
             #Check if Manager exists in the database
             if not manager_exists(managerid):
                 manager_flag = input("No such Manager exists , would you like to add a new manager(0/1)?: ")
@@ -30,6 +31,8 @@ def add_hotel():
             print(query)
             cur.execute(query)
             con.commit()
+            if manager_flag:
+                belongs_to(id,managerid)
         except Exception as e:
             con.rollback()
             print("Failed to insert new hotel")
@@ -95,7 +98,8 @@ def hireAnEmployee(hotelid_default=None):
             add_service_staff(row["ID"])
         elif position == "manager":
             add_manager(row["ID"])
-        belongs_to(hotelid,id)
+        if hotel_exists(hotelid):
+            belongs_to(hotelid,id)
         
     except Exception as e:
         con.rollback()
@@ -368,7 +372,19 @@ def modify_employee(id):
         print("e8. ManagerID: ")
     if position == "service_staff":
         print("e7. Supervisor")
-        print("e8. ")
+        print("e8. Room Number")
+    
+    attr = input("Enter the attribute you want to change")
+    
+    if not (attr == "e7" or attr == "e8"):
+        change = print("Enter the new value for the attribute")
+        query = "UPDATE EMPLOYEE SET %s=%s WHERE ID=%s"%(attr,change,attr)
+        cur.execute(query)
+        con.commit()
+
+    elif (attr == "e7" or attr == "e8"):
+        
+
     
 
     
