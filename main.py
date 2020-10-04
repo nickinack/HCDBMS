@@ -716,6 +716,47 @@ def dispatch():
         print("Error: Invalid Option")
 
 
+def handle_views():
+    print("Select from the following to retrieve information: ")
+    print("Choose a VIEW option\n\n")
+    print("0. Hotels")
+    print("1. Employees")
+    print("2. Members and guests")
+    print("3.  Finances")  # SPECIAL CASE
+    print("4. Clubs")
+    print("5. Rooms")
+    print("18. LATEST MEMBERS")
+    print("19. FINANCIAL REPORT")
+
+    choice = int(input("SELECT> "))
+    query = ""
+
+    if (choice == 1):
+        print("1.  Employees")
+        print("2. Fired employees")
+        print("3.  Service staff")
+        print("4.  Supervisors")
+        print("5.  Managers")
+
+    if (choice == 2):
+        print("1.  Guests")
+        print("2.  Guests in a hotel")
+        print("3.  Members")
+        print("4.  Member guests")
+        print("5.  Members of a tier")
+    
+    if (choice == 4):
+        print("1. All clubs")
+        print("2. Clubs of a hotel")
+        print("3. Clubs under a supervisor")
+        print("4. Clubs of type")
+
+    if (choice == 5):
+        print("1. Rooms of a hotel")
+        print("2. Unoccupied rooms of a hotel")
+        print("3. Rooms in a hotel currently occupied")
+        print("4. Guest staying in room")
+
 # Global
 while(1):
     tmp = sp.call('clear', shell=True)
@@ -745,6 +786,7 @@ while(1):
         with con.cursor() as cur:
             while(1):
                 # Here taking example of Employee Mini-world
+                print("0. Get data")
                 print("1. Manage employees")
                 print("2. Add Hotel")  # Add Hotel
                 print("3. Add a Club")  # ABHISHEKH
@@ -759,7 +801,9 @@ while(1):
                 print("20. Logout")
                 ch = int(input("Enter choice> "))
                 tmp = sp.call('clear', shell=True)
-                if ch == 1:
+                if ch == 0:
+                    handle_views()
+                elif if ch == 1:
                     dispatch()
                 elif ch == 2:
                     add_hotel()
