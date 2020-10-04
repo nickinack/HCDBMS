@@ -543,6 +543,28 @@ def supervises_clubs(id):
     cur.execute(query)
     return cur.fetchone() is not None
 
+def is_room_empty(roomno, hotelid):	
+    room_status_query = "SELECT STATUS FROM ROOMS WHERE NUMBER = %d AND HOTELID = %d" % (roomno, hotelid)	
+    cur.execute(room_status_query)	
+    query_res = cur.fetchone()	
+
+    if query_res is None:	
+        return False	
+
+    return query_res["STATUS"] == b'\x00'	
+
+def guest_exists(roomno, hotelid, checkin, checkout):	
+    query = "SELECT * FROM GUESTS WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (	
+        roomno, hotelid, checkin, checkout	
+    )	
+    cur.execute(query)	
+    return cur.fetchone() is not None
+
+def member_exists(id):	
+    query = "SELECT * FROM MEMBERS WHERE ID = %d" % (id)	
+    cur.execute(query)	
+    return cur.fetchone() is not None
+
 '''
 Helper functions end
 '''
@@ -611,7 +633,7 @@ def add_room():
         row["NUMBER"] = int(input("Room number: "))
         row["HOTELID"] = int(input("Hotel ID: "))
         # row["STATUS"] = int(input("Status: "))  # Set to empty by default
-        row["STATUS"] = 1 
+        row["STATUS"] = 0
         row["RATE"] = int(input("Room rate: "))
         row["MAX_GUESTS"] = int(input("Max guests allowed: "))
 
@@ -848,6 +870,105 @@ def dispatch():
 
     else:
         print("Error: Invalid Option")
+
+def add_guest():	
+    if True:	
+        row = {}	
+        print("Enter Guest details: ")	
+        row["ROOMNO"] = int(input("Room number: "))	
+        row["HOTELID"] = int(input("Hotel ID: "))	
+        row["ISMEMBER"] = int(input("Is member(1/0): "))	
+        row["MEMBERID"] = 0	
+        if row["ISMEMBER"] == 0:	
+            row["MEMBERID"] = None	
+        else:	
+            row["MEMBERID"] = int(input("Member ID: "))	
+        row["CHECKIN"] = input("Checkin date: ")	
+        row["CHECKOUT"] = input("Checkout date: ")	
+        row["COST"] = 0	
+        row["CLUB_HOURS"] = 0	
+
+        # Check valid room	
+        if not room_hotel_exists(row["ROOMNO"], row["HOTELID"]):	
+            print("Error adding guest: No such room found")	
+            return	
+        # Check valid member ID	
+        if row["ISMEMBER"] and (not member_exists(row["MEMBERID"])):	
+            print("Error adding member guest: Member ID incorrect")	
+            return	
+
+        # Check room empty	
+        if not is_room_empty(row["ROOMNO"], row["HOTELID"]):	
+            print("Error adding guest: Room is occupied")	
+            return	
+
+        if (row["ISMEMBER"]):	
+            query = "INSERT INTO GUESTS (ROOMNO, HOTELID, IS_MEMBER, MEMBERID, CHECKIN, CHECKOUT, COST, CLUB_HOURS) VALUES (%d, %d, %d, %d, '%s', '%s', %d, %d)" % (	
+                row["ROOMNO"],	
+                row["HOTELID"],	
+                row["ISMEMBER"],	
+                row["MEMBERID"],	
+                row["CHECKIN"],	
+                row["CHECKOUT"],	
+                row["COST"],	
+                row["CLUB_HOURS"]	
+            )	
+        else:	
+            query = "INSERT INTO GUESTS (ROOMNO, HOTELID, IS_MEMBER, CHECKIN, CHECKOUT, COST, CLUB_HOURS) VALUES (%d, %d, %d, '%s', '%s', %d, %d)" % (	
+                row["ROOMNO"],	
+                row["HOTELID"],	
+                row["ISMEMBER"],	
+                row["CHECKIN"],	
+                row["CHECKOUT"],	
+                row["COST"],	
+                row["CLUB_HOURS"]	
+            )	
+
+        cur.execute(query)	
+
+        # Set room status as occupied	
+        update_rooms_status = "UPDATE ROOMS SET STATUS = 1 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])	
+        cur.execute(update_rooms_status)	
+
+        if row["ISMEMBER"]:  # increment number of stays	
+            member_query = "UPDATE MEMBERS SET STAYS = STAYS + 1 WHERE ID = %d" % (row["MEMBERID"])	
+            cur.execute(member_query)	
+            print("Member stays updated")	
+
+        con.commit()	
+
+        print("Guest checked in.")	
+
+
+def remove_guest():	
+    if True:	
+        row = {}	
+        print("Enter Guest details: ")	
+        row["ROOMNO"] = int(input("Room number: "))	
+        row["HOTELID"] = int(input("Hotel ID: "))	
+        row["CHECKIN"] = input("Checkin date: ")	
+        row["CHECKOUT"] = input("Checkout date: ")	
+
+        if not guest_exists(row["ROOMNO"], row["HOTELID"], row["CHECKIN"], row["CHECKOUT"]):	
+            print("Guest does not exist")	
+            return	
+
+        query = "DELETE FROM GUESTS WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (	
+            row["ROOMNO"],	
+            row["HOTELID"],	
+            row["CHECKIN"],	
+            row["CHECKOUT"]	
+        )	
+        cur.execute(query)	
+
+        update_rooms_status = "UPDATE ROOMS SET STATUS = 0 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])	
+        cur.execute(update_rooms_status)	
+
+        con.commit()	
+
+
+        print(update_rooms_status)	
+        print("Guest successfully checked out. Room emptied.")	
 
 
 def handle_views():
