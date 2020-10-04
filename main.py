@@ -19,7 +19,7 @@ def add_hotel():
             if not manager_exists(managerid):
                 manager_flag = input("No such Manager exists , would you like to add a new manager(0/1)?: ")
                 if manager_flag:
-                    hireAnEmployee()
+                    hireAnEmployee(id)
                 else:
                     print("\n Sorry cannot insert")
                     return
@@ -60,7 +60,7 @@ def addLocation():
         print("Failed to insert location\n")
         print(e)  
         
-def hireAnEmployee():
+def hireAnEmployee(hotelid_default=None):
     try:
         # Takes emplyee details as input
         row = {}
@@ -68,8 +68,9 @@ def hireAnEmployee():
         name = (input("Name (Fname Minit Lname): ")).split(' ')
         row["FNAME"] = name[0]
         row["LNAME"] = name[1]
-        row["ID"] = input("Input id: ")
+        row["ID"] = int(input("Input id: "))
         if emp_exists(row["ID"]) and emp_fired(row["ID"]):
+            print("Hey")
             query = "UPDATE EMPLOYEE SET STATUS='Currently Employed' WHERE ID=%s"%(row["ID"])
             return
         row["DOB"] = input("Birth Date (YYYY-MM-DD): ")
@@ -78,8 +79,8 @@ def hireAnEmployee():
         row["SALARY"] = int(input("Salary: "))
         row["STATUS"] = "currently employed"
         row["PHONE"] = int(input("Enter 6 digit phone: "))
-        hotelid = input("Hotel ID: ")
-        if not hotel_exists(hotelid):
+        hotelid = int(input("Hotel ID: "))
+        if not hotel_exists(hotelid) and hotelid_default is None:
             print("No Such hotel exists")
             return
         query = "INSERT INTO EMPLOYEE (FNAME, LNAME, ID, DOB, EMAIL, JOINDATE, SALARY, STATUS, PHONE) VALUES('%s','%s', %s, '%s', '%s', '%s', %s, '%s',%s)" % (row["FNAME"], row["LNAME"], row["ID"], row["DOB"], row["EMAIL"], row["JOINDATE"], row["SALARY"], row["STATUS"],row["PHONE"])
@@ -356,8 +357,20 @@ def modify_employee(id):
     '''
     print("The following is the list of attributes you can change in an employee: ")
     position = input("Enter the position of the employee: ")
+    print("e1. Fname")
+    print("e2. Lname")
+    print("e3. Phone")
+    print("e4. Email")
+    print("e5. DOB")
+    print("e6. Salary")
     if position == "supervisor":
-        print("Do you want to change the ")
+        print("e7. Department: ")
+        print("e8. ManagerID: ")
+    if position == "service_staff":
+        print("e7. Supervisor")
+        print("e8. ")
+    
+
     
 
 
