@@ -382,6 +382,16 @@ def room_hotel_exists(roomno, hotelid):
     cur.execute(room_query)
     return cur.fetchone() is not None
 
+def is_room_empty(roomno, hotelid):
+    room_status_query = "SELECT STATUS FROM ROOMS WHERE NUMBER = %d AND HOTELID = %d" % (roomno, hotelid)
+    cur.execute(room_status_query)
+    query_res = cur.fetchone()
+
+    if query_res is None:
+        return False
+    
+    return query_res["STATUS"] == b'\x00'
+
 def emp_exists(id):
     query = "SELECT ID FROM EMPLOYEE WHERE ID=%s"%(id)
     cur.execute(query)
@@ -417,6 +427,10 @@ def supervises_clubs(id):
     cur.execute(query)
     return cur.fetchone() is not None
 
+def member_exists(id):
+    query = "SELECT * FROM MEMBERS WHERE ID = %d" % (id)
+    cur.execute(query)
+    return cur.fetchone() is not None
 '''
 Helper functions end
 '''
@@ -485,12 +499,16 @@ def add_room():
         row["NUMBER"] = int(input("Room number: "))
         row["HOTELID"] = int(input("Hotel ID: "))
         # row["STATUS"] = int(input("Status: "))  # Set to empty by default
-        row["STATUS"] = 1 
+        row["STATUS"] = 0
         row["RATE"] = int(input("Room rate: "))
         row["MAX_GUESTS"] = int(input("Max guests allowed: "))
 
         if not hotel_exists(row["HOTELID"]):
             print("Error at add_room(): Hotel does not exist")
+            return
+
+        if room_hotel_exists(row["NUMBER"], row["HOTELID"]):
+            print("Room already exists in hotel")
             return
 
         query_room_type = "SELECT TYPE FROM ROOM_TYPE where RATE = %d and MAX_GUESTS = %d" % (row["RATE"], row["MAX_GUESTS"])
@@ -690,6 +708,69 @@ def remove_service_staff_room():
     # except Exception as e:
     #    print(e)
 
+
+def add_guest():
+    if True:
+        row = {}
+        print("Enter Guest details: ")
+        row["ROOMNO"] = int(input("Room number: "))
+        row["HOTELID"] = int(input("Hotel ID: "))
+        row["ISMEMBER"] = int(input("Is member(1/0): "))
+        row["MEMBERID"] = 0
+        if row["ISMEMBER"] == 0:
+            row["MEMBERID"] = None
+        else:
+            row["MEMBERID"] = input("Member ID: ")
+        row["CHECKIN"] = input("Checkin date: ")
+        row["CHECKOUT"] = input("Checkout date: ")
+        row["COST"] = 0
+        row["CLUB_HOURS"] = 0
+
+        # Check valid room
+        if not room_hotel_exists(row["ROOMNO"], row["HOTELID"]):
+            print("Error adding guest: No such room found")
+            return
+        # Check valid member ID
+        if row["ISMEMBER"] and (not member_exists(row["MEMBERID"])):
+            print("Error adding member guest: Member ID incorrect")
+            return
+        
+        # Check room empty
+        if not is_room_empty(row["ROOMNO"], row["HOTELID"]):
+            print("Error adding guest: Room is occupied")
+            return
+        
+        if (row["ISMEMBER"]):
+            query = "INSERT INTO GUESTS (ROOMNO, HOTELID, IS_MEMBER, MEMBERID, CHECKIN, CHECKOUT, COST, CLUB_HOURS) VALUES (%d, %d, %d, %d, '%s', '%s', %d, %d)" % (
+                row["ROOMNO"],
+                row["HOTELID"],
+                row["ISMEMBER"],
+                row["MEMBERID"],
+                row["CHECKIN"],
+                row["CHECKOUT"],
+                row["COST"],
+                row["CLUB_HOURS"]
+            )
+        else:
+            query = "INSERT INTO GUESTS (ROOMNO, HOTELID, IS_MEMBER, CHECKIN, CHECKOUT, COST, CLUB_HOURS) VALUES (%d, %d, %d, '%s', '%s', %d, %d)" % (
+                row["ROOMNO"],
+                row["HOTELID"],
+                row["ISMEMBER"],
+                row["CHECKIN"],
+                row["CHECKOUT"],
+                row["COST"],
+                row["CLUB_HOURS"]
+            )
+
+        cur.execute(query)
+
+        # Set room status as occupied
+        update_rooms_status = "UPDATE ROOMS SET STATUS = 1 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])
+        cur.execute(update_rooms_status)
+
+        con.commit()
+
+
 def dispatch():
     """
     Function that maps helper functions to option entered
@@ -791,7 +872,7 @@ while(1):
                 print("1. Manage employees")
                 print("2. Add Hotel")  # Add Hotel
                 print("3. Add a Club")  # ABHISHEKH
-                print("4. Check in a Guest")
+                print("4. Check in a Guest")  # ABHISHEKH
                 print("5. Check out a Guest")
                 print("6. Add a room to a hotel")  # ABHISHEKH
                 print("7. Guest registering to club")
@@ -804,7 +885,7 @@ while(1):
                 tmp = sp.call('clear', shell=True)
                 if ch == 0:
                     handle_views()
-                elif if ch == 1:
+                elif ch == 1:
                     dispatch()
                 elif ch == 2:
                     add_hotel()
@@ -814,6 +895,8 @@ while(1):
                     add_member()
                 elif (ch == 8):
                     add_finances()
+                elif (ch == 4):  # TODO: Compute cost
+                    add_guest()
                 elif ch == 20:
                     break
                 tmp = input("Enter any key to CONTINUE>")
