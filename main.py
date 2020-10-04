@@ -638,7 +638,7 @@ def add_service_staff_room():
     """
     if True:
         row = {}
-        print("Enter finance details: ")
+        print("Enter room and service staff detail: ")
         row["ROOMNO"] = int(input("Room number: "))
         row["HOTELID"] = int(input("Hotel ID: "))
         row["SERVICE_STAFF_ID"] = int(input("Service staff ID: "))
@@ -658,6 +658,37 @@ def add_service_staff_room():
         print("Successfully assigned")
 
 
+def remove_service_staff_room():
+    """
+    Remove a service staff from a room
+    """
+    if True:
+        row = {}
+        print("Enter room and service staff detail: ")
+        row["ROOMNO"] = int(input("Room number: "))
+        row["HOTELID"] = int(input("Hotel ID: "))
+        row["SERVICE_STAFF_ID"] = int(input("Service staff ID: "))
+        
+        if not room_hotel_exists(row["ROOMNO"], row["HOTELID"]):
+            print("Error assigning service staff: Room does not exist")
+            return
+        
+        if  not service_staff_exists(row["SERVICE_STAFF_ID"]):
+            print("Error assigning service staff: Service staff does not exist")
+            return
+        
+        relation_exist_query = "SELECT * FROM SERVICE_STAFF_ROOM WHERE ROOMNO = %d AND HOTELID = %d AND SERVICE_STAFF_ID = %d" % (row["ROOMNO"], row["HOTELID"], row["SERVICE_STAFF_ID"])
+        cur.execute(relation_exist_query)
+        if cur.fetchone() is None:
+            print("Service staff was not assigned to the room")
+            return
+        query = "DELETE FROM SERVICE_STAFF_ROOM WHERE ROOMNO = %d AND HOTELID = %d AND SERVICE_STAFF_ID = %d" % (row["ROOMNO"], row["HOTELID"], row["SERVICE_STAFF_ID"])
+        cur.execute(query)
+        con.commit()
+
+        print("Successfully un-assigned")
+
+
 def dispatch():
     """
     Function that maps helper functions to option entered
@@ -665,12 +696,20 @@ def dispatch():
     print("The following options are possible for employee management")
     print("a. Add an Employee")
     print("b. Fire an Employee")
+    print("c. Assign service staff to room")
+    print("d. Remove service staff from room")
     ch = input("Enter choice: ")
     if(ch == "a"):
         hireAnEmployee()
    
     elif(ch == "b"):
         fireAnEmployee()
+
+    elif (ch == "c"):
+        add_service_staff_room()
+    
+    elif (ch == "d"):
+        remove_service_staff_room()
 
     else:
         print("Error: Invalid Option")
@@ -716,8 +755,7 @@ while(1):
                 print("9. Generate profit report")
                 print("10. Generate Guest Bill")
                 print("11. Add a Member Guest")
-                print("12. Assign service staff to room")
-                print("13. Logout")
+                print("20. Logout")
                 ch = int(input("Enter choice> "))
                 tmp = sp.call('clear', shell=True)
                 if ch == 1:
@@ -730,9 +768,7 @@ while(1):
                     add_member()
                 elif (ch == 8):
                     add_finances()
-                elif (ch == 12):
-                    add_service_staff_room()
-                elif ch == 13:
+                elif ch == 20:
                     break
                 tmp = input("Enter any key to CONTINUE>")
 
