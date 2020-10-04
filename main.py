@@ -377,6 +377,11 @@ def hotel_exists(id):
     cur.execute(hotel_query)
     return cur.fetchone() is not None
 
+def room_hotel_exists(roomno, hotelid):
+    room_query = "SELECT * FROM ROOMS WHERE NUMBER = %d AND HOTELID = %d" % (roomno, hotelid)
+    cur.execute(room_query)
+    return cur.fetchone() is not None
+
 def emp_exists(id):
     query = "SELECT ID FROM EMPLOYEE WHERE ID=%s"%(id)
     cur.execute(query)
@@ -627,6 +632,32 @@ def add_finances():
         print("Inserted into database")
 
 
+def add_service_staff_room():
+    """
+    Assign a service staff to a room
+    """
+    if True:
+        row = {}
+        print("Enter finance details: ")
+        row["ROOMNO"] = int(input("Room number: "))
+        row["HOTELID"] = int(input("Hotel ID: "))
+        row["SERVICE_STAFF_ID"] = int(input("Service staff ID: "))
+        
+        if not room_hotel_exists(row["ROOMNO"], row["HOTELID"]):
+            print("Error assigning service staff: Room does not exist")
+            return
+        
+        if  not service_staff_exists(row["SERVICE_STAFF_ID"]):
+            print("Error assigning service staff: Service staff does not exist")
+            return
+        
+        query = "INSERT INTO SERVICE_STAFF_ROOM (ROOMNO, HOTELID, SERVICE_STAFF_ID) VALUES (%d, %d, %d)" % (row["ROOMNO"], row["HOTELID"], row["SERVICE_STAFF_ID"])
+        cur.execute(query)
+        con.commit()
+
+        print("Successfully assigned")
+
+
 def dispatch():
     """
     Function that maps helper functions to option entered
@@ -685,7 +716,8 @@ while(1):
                 print("9. Generate profit report")
                 print("10. Generate Guest Bill")
                 print("11. Add a Member Guest")
-                print("12. Logout")
+                print("12. Assign service staff to room")
+                print("13. Logout")
                 ch = int(input("Enter choice> "))
                 tmp = sp.call('clear', shell=True)
                 if ch == 1:
@@ -698,7 +730,9 @@ while(1):
                     add_member()
                 elif (ch == 8):
                     add_finances()
-                elif ch == 12:
+                elif (ch == 12):
+                    add_service_staff_room()
+                elif ch == 13:
                     break
                 tmp = input("Enter any key to CONTINUE>")
 
