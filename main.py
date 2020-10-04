@@ -1199,6 +1199,17 @@ def remove_guest():
         print("Guest successfully checked out. Room emptied.")	
 
 
+def view_employees(hId):
+    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s)" % (
+        hId)
+    print(query)
+    cur.execute(query)
+    rows = cur.fetchall
+    for row in cur:
+        print(row)
+        print(row["ID"], row["FNAME"], row["LNAME"])
+    print("\n")
+
 def handle_views():
     print("Select from the following to retrieve information: ")
     print("Choose a VIEW option\n\n")
@@ -1215,12 +1226,26 @@ def handle_views():
     query = ""
 
     if (choice == 1):
+        hId = int(input("Please specify hotelID: "))
         print("1.  Employees")
         print("2. Fired employees")
         print("3.  Service staff")
         print("4.  Supervisors")
         print("5.  Managers")
-
+        chch = int(input("SELECT> "))
+        if (chch == 1):
+            view_employees(hId)
+        elif (chch == 2):
+            view_fired_employees(hId)
+        elif (chch == 3):
+            view_service_staff(hId)
+        elif (chch == 4):
+            view_supervisor(hId)
+        elif (chch == 5):
+            view_manager(hId)
+        else:
+            print("invalid")
+            
     if (choice == 2):
         print("1.  Guests")
         print("2.  Guests in a hotel")
