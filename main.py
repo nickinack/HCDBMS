@@ -538,6 +538,20 @@ def manages_hotel(id):
     cur.execute(query)
     return cur.fetchone() is not None
 
+def create_finances_if_not_exist(hotelid, month, year):
+    if not finances_exists(hotelid, month, year):
+        query = "INSERT INTO FINANCES (HOTELID, MONTH, YEAR) VALUES (%d, %d, %d)" % (hotelid, month, year)
+        cur.execute(query)
+        print("Inserting into finances")
+        con.commit() 
+
+def finances_exists(hotelid, month, year):
+    query = "SELECT * FROM FINANCES WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+        hotelid, month, year
+    )
+    cur.execute(query)
+    return cur.fetchone() is not None
+
 def supervises_clubs(id):
     query = "SELECT SUPID FROM CLUBS WHERE SUPID=%s"%(id)
     cur.execute(query)
@@ -842,6 +856,216 @@ def remove_service_staff_room():
     # except Exception as e:
     #    print(e)
 
+
+
+def add_guest():
+    if True:
+        row = {}
+        print("Enter Guest details: ")
+        row["ROOMNO"] = int(input("Room number: "))
+        row["HOTELID"] = int(input("Hotel ID: "))
+        row["ISMEMBER"] = int(input("Is member(1/0): "))
+        row["MEMBERID"] = 0
+        if row["ISMEMBER"] == 0:
+            row["MEMBERID"] = None
+        else:
+            row["MEMBERID"] = int(input("Member ID: "))
+        row["CHECKIN"] = input("Checkin date: ")
+        row["CHECKOUT"] = input("Checkout date: ")
+        row["COST"] = 0
+        row["CLUB_HOURS"] = 0
+
+        # Check valid room
+        if not room_hotel_exists(row["ROOMNO"], row["HOTELID"]):
+            print("Error adding guest: No such room found")
+            return
+        # Check valid member ID
+        if row["ISMEMBER"] and (not member_exists(row["MEMBERID"])):
+            print("Error adding member guest: Member ID incorrect")
+            return
+        
+        # Check room empty
+        if not is_room_empty(row["ROOMNO"], row["HOTELID"]):
+            print("Error adding guest: Room is occupied")
+            return
+        
+        if (row["ISMEMBER"]):
+            query = "INSERT INTO GUESTS (ROOMNO, HOTELID, IS_MEMBER, MEMBERID, CHECKIN, CHECKOUT, COST, CLUB_HOURS) VALUES (%d, %d, %d, %d, '%s', '%s', %d, %d)" % (
+                row["ROOMNO"],
+                row["HOTELID"],
+                row["ISMEMBER"],
+                row["MEMBERID"],
+                row["CHECKIN"],
+                row["CHECKOUT"],
+                row["COST"],
+                row["CLUB_HOURS"]
+            )
+        else:
+            query = "INSERT INTO GUESTS (ROOMNO, HOTELID, IS_MEMBER, CHECKIN, CHECKOUT, COST, CLUB_HOURS) VALUES (%d, %d, %d, '%s', '%s', %d, %d)" % (
+                row["ROOMNO"],
+                row["HOTELID"],
+                row["ISMEMBER"],
+                row["CHECKIN"],
+                row["CHECKOUT"],
+                row["COST"],
+                row["CLUB_HOURS"]
+            )
+
+        cur.execute(query)
+
+        # Set room status as occupied
+        update_rooms_status = "UPDATE ROOMS SET STATUS = 1 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])
+        cur.execute(update_rooms_status)
+
+        if row["ISMEMBER"]:  # increment number of stays
+            member_query = "UPDATE MEMBERS SET STAYS = STAYS + 1 WHERE ID = %d" % (row["MEMBERID"])
+            cur.execute(member_query)
+            print("Member stays updated")
+        
+        con.commit()
+
+        print("Guest checked in.")
+
+
+def remove_guest():
+    if True:
+        row = {}
+        print("Enter Guest details: ")
+        row["ROOMNO"] = int(input("Room number: "))
+        row["HOTELID"] = int(input("Hotel ID: "))
+        row["CHECKIN"] = input("Checkin date: ")
+        row["CHECKOUT"] = input("Checkout date: ")
+
+        if not guest_exists(row["ROOMNO"], row["HOTELID"], row["CHECKIN"], row["CHECKOUT"]):
+            print("Guest does not exist")
+            return
+        
+        query = "DELETE FROM GUESTS WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (
+            row["ROOMNO"],
+            row["HOTELID"],
+            row["CHECKIN"],
+            row["CHECKOUT"]
+        )
+        cur.execute(query)
+
+        update_rooms_status = "UPDATE ROOMS SET STATUS = 0 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])
+        cur.execute(update_rooms_status)
+
+        con.commit()
+
+
+        print(update_rooms_status)
+        print("Guest successfully checked out. Room emptied.")
+
+
+def add_guest_club():
+    """
+    mysql> DESC MASTER_RELATIONSHIP;
+    +-----------------+--------------+------+-----+---------+-------+
+    | Field           | Type         | Null | Key | Default | Extra |
+    +-----------------+--------------+------+-----+---------+-------+
+    | ROOMNO          | int          | NO   | PRI | NULL    |       |
+    | HOTELID         | int          | NO   | PRI | NULL    |       |
+    | CHECKIN         | date         | NO   | PRI | NULL    |       |
+    | CHECKOUT        | date         | NO   | PRI | NULL    |       |
+    | CLUB_TYPE       | varchar(255) | NO   | PRI | NULL    |       |
+    | MONTH           | int          | NO   | PRI | NULL    |       |
+    | YEAR            | int          | NO   | PRI | NULL    |       |
+    | CLUB_HOURS_USED | int          | YES  |     | NULL    |       |
+    +-----------------+--------------+------+-----+---------+-------+
+    8 rows in set 
+    """
+    if True:
+        row = {}
+        print("Enter Guest details: ")
+        row["ROOMNO"] = int(input("Room number: "))
+        row["HOTELID"] = int(input("Hotel ID: "))
+        row["CHECKIN"] = input("Checkin date: ")
+        row["CHECKOUT"] = input("Checkout date: ")
+        print("Enter Club details: ")
+        row["CLUB_TYPE"] = input("Club type: ")
+        row["MONTH"] = int(input("Month of joining: "))
+        row["YEAR"] = int(input("Year: "))
+        row["CLUB_HOURS_USED"] = int(input("Hours registered for: "))
+
+        if not guest_exists(row["ROOMNO"], row["HOTELID"], row["CHECKIN"], row["CHECKOUT"]):
+            print("Invalid guest information")
+            return
+
+        club_type_query = "SELECT * FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s'" % (row["HOTELID"], row["CLUB_TYPE"])
+        cur.execute(club_type_query)
+
+        if cur.fetchone() is None:
+            print("Such a club does not exist in the hotel")
+            return
+        else:
+            club_exist_q = "SELECT * FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s' AND MONTH = %d AND YEAR = %d" % (row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"])
+            cur.execute(club_exist_q)
+            if cur.fetchone() is None:
+                print("Club has not been updated.")
+                supid = int(input("Enter supervisor ID for this month: "))
+                while not supervisor_exists(supid):
+                    supid = int(input("Supervisor does not exist. Enter valid ID: "))
+                cost_per_hour = int(input("Enter cost per hour for this month: "))
+
+                club_type_query = "INSERT INTO CLUBS (HOTELID, TYPE, MONTH, YEAR, SUPID, COST_PER_HOUR) VALUES (%d, '%s', %d, %d, %d, %d)" % (
+                    row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"], supid, cost_per_hour
+                )
+
+                cur.execute(club_type_query)
+        
+        create_finances_if_not_exist(row["HOTELID"], row["MONTH"], row["YEAR"])
+
+        mr_query = "SELECT * FROM MASTER_RELATIONSHIP WHERE \
+                    ROOMNO = %d AND \
+                    HOTELID = %d AND \
+                    CHECKIN = '%s' AND \
+                    CHECKOUT = '%s' AND \
+                    CLUB_TYPE = '%s' AND \
+                    MONTH = '%d' AND \
+                    YEAR = %d" % (
+                        row["ROOMNO"] ,
+                        row["HOTELID"],
+                        row["CHECKIN"],
+                        row["CHECKOUT"],
+                        row["CLUB_TYPE"],
+                        row["MONTH"],
+                        row["YEAR"]
+                    )
+        cur.execute(mr_query)
+        if cur.fetchone() is None:
+            mr_query = "INSERT INTO MASTER_RELATIONSHIP(ROOMNO, HOTELID, CHECKIN, CHECKOUT, CLUB_TYPE, MONTH, YEAR, CLUB_HOURS_USED) VALUES (%d, %d, '%s', '%s', '%s', %d, %d, %d)" % (
+                row["ROOMNO"],
+                row["HOTELID"],
+                row["CHECKIN"],
+                row["CHECKOUT"],
+                row["CLUB_TYPE"],
+                row["MONTH"],
+                row["YEAR"],
+                row["CLUB_HOURS_USED"]
+            )
+            cur.execute(mr_query)
+        else:
+            print("Guest has already been registered. Increasing time registered")
+            mr_query = "UPDATE MASTER_RELATIONSHIP SET CLUB_HOURS_USED = CLUB_HOURS_USED + %d WHERE \
+                        ROOMNO = %d AND \
+                        HOTELID = %d AND \
+                        CHECKIN = '%s' AND \
+                        CHECKOUT = '%s' AND \
+                        CLUB_TYPE = '%s' AND \
+                        MONTH = '%d' AND \
+                        YEAR = %d" % (
+                            row["CLUB_HOURS_USED"], row["ROOMNO"] , row["HOTELID"],
+                            row["CHECKIN"], row["CHECKOUT"], row["CLUB_TYPE"],
+                            row["MONTH"], row["YEAR"]
+                        )
+            cur.execute(mr_query)
+
+        con.commit()
+
+        print("Guest successfully registered")
+
+        
 def dispatch():
     """
     Function that maps helper functions to option entered
@@ -1049,10 +1273,10 @@ while(1):
                 print("1. Manage employees")
                 print("2. Add Hotel")  # Add Hotel
                 print("3. Add a Club")  # ABHISHEKH
-                print("4. Check in a Guest")
-                print("5. Check out a Guest")
+                print("4. Check in a Guest")  # ABHISHEKH
+                print("5. Check out a Guest")  # ABHISHEKH
                 print("6. Add a room to a hotel")  # ABHISHEKH
-                print("7. Guest registering to club")
+                print("7. Guest registering to club")  # ABHISHEKH
                 print("8. Add monthly finance")  # ABHISHEKH
                 print("9. Generate profit report")
                 print("10. Generate Guest Bill")
@@ -1068,6 +1292,8 @@ while(1):
                     add_hotel()
                 elif ch == 6:
                     add_room()
+                elif ch == 7:
+                    add_guest_club()
                 elif (ch == 11):
                     add_member()
                 elif (ch == 8):
