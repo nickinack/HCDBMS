@@ -733,10 +733,11 @@ def handle_views():
 
     if (choice == 1):
         print("1.  Employees")
-        print("2. Fired employees")
+        print("2.  Fired employees")
         print("3.  Service staff")
         print("4.  Supervisors")
         print("5.  Managers")
+
 
     if (choice == 2):
         print("1.  Guests")
