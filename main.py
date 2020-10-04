@@ -852,6 +852,42 @@ def remove_guest():
         print("Guest successfully checked out. Room emptied.")
 
 
+def add_guest_club():
+    """
+    mysql> DESC MASTER_RELATIONSHIP;
+    +-----------------+--------------+------+-----+---------+-------+
+    | Field           | Type         | Null | Key | Default | Extra |
+    +-----------------+--------------+------+-----+---------+-------+
+    | ROOMNO          | int          | NO   | PRI | NULL    |       |
+    | HOTELID         | int          | NO   | PRI | NULL    |       |
+    | CHECKIN         | date         | NO   | PRI | NULL    |       |
+    | CHECKOUT        | date         | NO   | PRI | NULL    |       |
+    | CLUB_TYPE       | varchar(255) | NO   | PRI | NULL    |       |
+    | MONTH           | int          | NO   | PRI | NULL    |       |
+    | YEAR            | int          | NO   | PRI | NULL    |       |
+    | CLUB_HOURS_USED | int          | YES  |     | NULL    |       |
+    +-----------------+--------------+------+-----+---------+-------+
+    8 rows in set 
+    """
+    if True:
+        row = {}
+        print("Enter Guest details: ")
+        row["ROOMNO"] = int(input("Room number: "))
+        row["HOTELID"] = int(input("Hotel ID: "))
+        row["CHECKIN"] = input("Checkin date: ")
+        row["CHECKOUT"] = input("Checkout date: ")
+        print("Enter Club details: ")
+        row["TYPE"] = input("Club type: ")
+        row["MONTH"] = int(input("Month of joining: "))
+        row["YEAR"] = int(input("Year: "))
+
+        club_type_query = "SELECT * FROM CLUBS WHERE "
+
+        
+
+
+
+
 def dispatch():
     """
     Function that maps helper functions to option entered
@@ -959,9 +995,9 @@ while(1):
                 print("2. Add Hotel")  # Add Hotel
                 print("3. Add a Club")  # ABHISHEKH
                 print("4. Check in a Guest")  # ABHISHEKH
-                print("5. Check out a Guest")
+                print("5. Check out a Guest")  # ABHISHEKH
                 print("6. Add a room to a hotel")  # ABHISHEKH
-                print("7. Guest registering to club")
+                print("7. Guest registering to club")  # ABHISHEKH
                 print("8. Add monthly finance")  # ABHISHEKH
                 print("9. Generate profit report")
                 print("10. Generate Guest Bill")
@@ -977,6 +1013,8 @@ while(1):
                     add_hotel()
                 elif ch == 6:
                     add_room()
+                elif ch == 7:
+                    add_guest_club()
                 elif (ch == 11):
                     add_member()
                 elif (ch == 8):
