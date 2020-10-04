@@ -1213,12 +1213,26 @@ def handle_views():
     query = ""
 
     if (choice == 1):
+        hId = int(input("Please specify hotelID: "))
         print("1.  Employees")
         print("2. Fired employees")
         print("3.  Service staff")
         print("4.  Supervisors")
         print("5.  Managers")
-
+        chch = int(input("SELECT> "))
+        if (chch == 1):
+            view_employees(hId)
+        elif (chch == 2):
+            view_fired_employees(hId)
+        elif (chch == 3):
+            view_service_staff(hId)
+        elif (chch == 4):
+            view_supervisor(hId)
+        elif (chch == 5):
+            view_manager(hId)
+        else:
+            print("invalid")
+            
     if (choice == 2):
         print("1.  Guests")
         print("2.  Guests in a hotel")
@@ -1237,6 +1251,7 @@ def handle_views():
         print("2. Unoccupied rooms of a hotel")
         print("3. Rooms in a hotel currently occupied")
         print("4. Guest staying in room")
+
 
 # Global
 while(1):
