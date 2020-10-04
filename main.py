@@ -834,10 +834,12 @@ def remove_guest():
             row["CHECKOUT"]
         )
         cur.execute(query)
-        con.commit()
 
         update_rooms_status = "UPDATE ROOMS SET STATUS = 0 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])
         cur.execute(update_rooms_status)
+        
+        con.commit()
+
 
         print(update_rooms_status)
         print("Guest successfully checked out. Room emptied.")
