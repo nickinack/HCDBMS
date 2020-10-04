@@ -882,6 +882,7 @@ def add_guest_club():
     | CLUB_HOURS_USED | int          | YES  |     | NULL    |       |
     +-----------------+--------------+------+-----+---------+-------+
     8 rows in set 
+    
     """
     if True:
         row = {}
