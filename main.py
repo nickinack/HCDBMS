@@ -465,6 +465,20 @@ def manages_hotel(id):
     cur.execute(query)
     return cur.fetchone() is not None
 
+def create_finances_if_not_exist(hotelid, month, year):
+    if not finances_exists(hotelid, month, year):
+        query = "INSERT INTO FINANCES (HOTELID, MONTH, YEAR) VALUES (%d, %d, %d)" % (hotelid, month, year)
+        cur.execute(query)
+        print("Inserting into finances")
+        con.commit()
+
+def finances_exists(hotelid, month, year):
+    query = "SELECT * FROM FINANCES WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+        hotelid, month, year
+    )
+    cur.execute(query)
+    return cur.fetchone() is not None
+
 def supervises_clubs(id):
     query = "SELECT SUPID FROM CLUBS WHERE SUPID=%s"%(id)
     cur.execute(query)
@@ -877,15 +891,87 @@ def add_guest_club():
         row["CHECKIN"] = input("Checkin date: ")
         row["CHECKOUT"] = input("Checkout date: ")
         print("Enter Club details: ")
-        row["TYPE"] = input("Club type: ")
+        row["CLUB_TYPE"] = input("Club type: ")
         row["MONTH"] = int(input("Month of joining: "))
         row["YEAR"] = int(input("Year: "))
+        row["CLUB_HOURS_USED"] = int(input("Hours registered for: "))
 
-        club_type_query = "SELECT * FROM CLUBS WHERE "
+        if not guest_exists(row["ROOMNO"], row["HOTELID"], row["CHECKIN"], row["CHECKOUT"]):
+            print("Invalid guest information")
+            return
 
+        club_type_query = "SELECT * FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s'" % (row["HOTELID"], row["CLUB_TYPE"])
+        cur.execute(club_type_query)
+
+        if cur.fetchone() is None:
+            print("Such a club does not exist in the hotel")
+            return
+        else:
+            club_exist_q = "SELECT * FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s' AND MONTH = %d AND YEAR = %d" % (row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"])
+            cur.execute(club_exist_q)
+            if cur.fetchone() is None:
+                print("Club has not been updated.")
+                supid = int(input("Enter supervisor ID for this month: "))
+                while not supervisor_exists(supid):
+                    supid = int(input("Supervisor does not exist. Enter valid ID: "))
+                cost_per_hour = int(input("Enter cost per hour for this month: "))
+
+                club_type_query = "INSERT INTO CLUBS (HOTELID, TYPE, MONTH, YEAR, SUPID, COST_PER_HOUR) VALUES (%d, '%s', %d, %d, %d, %d)" % (
+                    row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"], supid, cost_per_hour
+                )
+
+                cur.execute(club_type_query)
         
+        create_finances_if_not_exist(row["HOTELID"], row["MONTH"], row["YEAR"])
 
+        mr_query = "SELECT * FROM MASTER_RELATIONSHIP WHERE \
+                    ROOMNO = %d AND \
+                    HOTELID = %d AND \
+                    CHECKIN = '%s' AND \
+                    CHECKOUT = '%s' AND \
+                    CLUB_TYPE = '%s' AND \
+                    MONTH = '%d' AND \
+                    YEAR = %d" % (
+                        row["ROOMNO"] ,
+                        row["HOTELID"],
+                        row["CHECKIN"],
+                        row["CHECKOUT"],
+                        row["CLUB_TYPE"],
+                        row["MONTH"],
+                        row["YEAR"]
+                    )
+        cur.execute(mr_query)
+        if cur.fetchone() is None:
+            mr_query = "INSERT INTO MASTER_RELATIONSHIP(ROOMNO, HOTELID, CHECKIN, CHECKOUT, CLUB_TYPE, MONTH, YEAR, CLUB_HOURS_USED) VALUES (%d, %d, '%s', '%s', '%s', %d, %d, %d)" % (
+                row["ROOMNO"],
+                row["HOTELID"],
+                row["CHECKIN"],
+                row["CHECKOUT"],
+                row["CLUB_TYPE"],
+                row["MONTH"],
+                row["YEAR"],
+                row["CLUB_HOURS_USED"]
+            )
+            cur.execute(mr_query)
+        else:
+            print("Guest has already been registered. Increasing time registered")
+            mr_query = "UPDATE MASTER_RELATIONSHIP SET CLUB_HOURS_USED = CLUB_HOURS_USED + %d WHERE \
+                        ROOMNO = %d AND \
+                        HOTELID = %d AND \
+                        CHECKIN = '%s' AND \
+                        CHECKOUT = '%s' AND \
+                        CLUB_TYPE = '%s' AND \
+                        MONTH = '%d' AND \
+                        YEAR = %d" % (
+                            row["CLUB_HOURS_USED"], row["ROOMNO"] , row["HOTELID"],
+                            row["CHECKIN"], row["CHECKOUT"], row["CLUB_TYPE"],
+                            row["MONTH"], row["YEAR"]
+                        )
+            cur.execute(mr_query)
 
+        con.commit()
+
+        print("Guest successfully registered")
 
 
 def dispatch():
