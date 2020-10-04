@@ -470,7 +470,7 @@ def create_finances_if_not_exist(hotelid, month, year):
         query = "INSERT INTO FINANCES (HOTELID, MONTH, YEAR) VALUES (%d, %d, %d)" % (hotelid, month, year)
         cur.execute(query)
         print("Inserting into finances")
-        con.commit()
+        con.commit() 
 
 def finances_exists(hotelid, month, year):
     query = "SELECT * FROM FINANCES WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
