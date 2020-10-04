@@ -69,7 +69,7 @@ def hireAnEmployee():
         row["FNAME"] = name[0]
         row["LNAME"] = name[1]
         row["ID"] = input("Input id: ")
-        if emp_exists(id) and emp_fired(id):
+        if emp_exists(row["ID"]) and emp_fired(row["ID"]):
             query = "UPDATE EMPLOYEE SET STATUS='Currently Employed' WHERE ID=%s"%(row["ID"])
             return
         row["DOB"] = input("Birth Date (YYYY-MM-DD): ")
@@ -350,9 +350,16 @@ def change_supervisor_club(id):
         print("Failed to change Supervisor \n")
         print(e)
 
-def modify(table_name , attribute , pkey):
-    pass
-        
+def modify_employee(id):
+    '''
+    Modify an employee details (other than pkey)
+    '''
+    print("The following is the list of attributes you can change in an employee: ")
+    position = input("Enter the position of the employee: ")
+    if position == "supervisor":
+        print("Do you want to change the ")
+    
+
 
 '''
 Helper functions start 
@@ -398,7 +405,7 @@ def manages_supervisor(id):
     return cur.fetchone() is not None
 
 def supervises_service_staff(id):
-    query = "SELECT SUPID FROM SUPERVISOR WHERE SUPID=%s"%(id)
+    query = "SELECT ID FROM SUPERVISOR WHERE ID=%s"%(id)
     cur.execute(query)
     return cur.fetchone() is not None
 
@@ -699,6 +706,7 @@ def dispatch():
     print("b. Fire an Employee")
     print("c. Assign service staff to room")
     print("d. Remove service staff from room")
+    print("e. Alter Employee Details")
     ch = input("Enter choice: ")
     if(ch == "a"):
         hireAnEmployee()
@@ -711,6 +719,10 @@ def dispatch():
     
     elif (ch == "d"):
         remove_service_staff_room()
+
+    elif (ch == "e"):
+        pass
+
 
     else:
         print("Error: Invalid Option")
@@ -803,7 +815,7 @@ while(1):
                 tmp = sp.call('clear', shell=True)
                 if ch == 0:
                     handle_views()
-                elif if ch == 1:
+                elif ch == 1:
                     dispatch()
                 elif ch == 2:
                     add_hotel()
