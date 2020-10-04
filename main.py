@@ -1072,6 +1072,10 @@ while(1):
                     add_member()
                 elif (ch == 8):
                     add_finances()
+                elif (ch == 4):  # TODO: Compute cost	
+                    add_guest()	
+                elif (ch == 5):	
+                    remove_guest()
                 elif ch == 20:
                     break
                 tmp = input("Enter any key to CONTINUE>")
