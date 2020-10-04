@@ -1,6 +1,7 @@
 import subprocess as sp
 import pymysql
 import pymysql.cursors
+from datetime import datetime
 
 
 
@@ -1099,117 +1100,103 @@ def dispatch():
     else:
         print("Error: Invalid Option")
 
-def add_guest():	
-    if True:	
-        row = {}	
-        print("Enter Guest details: ")	
-        row["ROOMNO"] = int(input("Room number: "))	
-        row["HOTELID"] = int(input("Hotel ID: "))	
-        row["ISMEMBER"] = int(input("Is member(1/0): "))	
-        row["MEMBERID"] = 0	
-        if row["ISMEMBER"] == 0:	
-            row["MEMBERID"] = None	
-        else:	
-            row["MEMBERID"] = int(input("Member ID: "))	
-        row["CHECKIN"] = input("Checkin date: ")	
-        row["CHECKOUT"] = input("Checkout date: ")	
-        row["COST"] = 0	
-        row["CLUB_HOURS"] = 0	
+def cost_guest():
+    '''
+    Get the entire cost of stay and generate the bill for the guest
+    '''
+    try:
+        club_cost = 0
+        stay_cost = 0
+        member_discount = 0
+        date_format = "%Y-%m-%d"
+        member_discount_dict = {
+            1 : 100,
+            2 : 200,
+            3 : 300,
+            4 : 400,
+            5 : 500
+        }
+        member_stays_dict = {
+            10 : 100,
+            50 : 200,
+            100 : 500
+        }
 
-        # Check valid room	
-        if not room_hotel_exists(row["ROOMNO"], row["HOTELID"]):	
-            print("Error adding guest: No such room found")	
-            return	
-        # Check valid member ID	
-        if row["ISMEMBER"] and (not member_exists(row["MEMBERID"])):	
-            print("Error adding member guest: Member ID incorrect")	
-            return	
+        roomno = int(input("Enter room number: "))
+        hotelid = int(input("Enter HotelID: "))
+        checkin = input("Enter Checkin: ")
+        checkout = input("Enter Checkout: ")
+        if not room_hotel_exists(roomno,hotelid):
+            print("Room dosen't exist in the hotel\n")
+            return
+        if is_room_empty(roomno,hotelid):
+            print("Room is empty\n")
+            return
+        if not guest_exists(roomno,hotelid,checkin,checkout):
+            print("No such guest with the matching details exists \n")
 
-        # Check room empty	
-        if not is_room_empty(row["ROOMNO"], row["HOTELID"]):	
-            print("Error adding guest: Room is occupied")	
-            return	
+        query = "SELECT CLUB_TYPE,CLUB_HOURS_USED,MONTH,YEAR FROM MASTER_RELATIONSHIP WHERE \
+                ROOMNO=%s AND \
+                HOTELID=%s AND \
+                CHECKIN='%s' AND \
+                CHECKOUT='%s' "%(roomno , hotelid , checkin , checkout)
+        cur.execute(query)
+        results = cur.fetchall()
 
-        if (row["ISMEMBER"]):	
-            query = "INSERT INTO GUESTS (ROOMNO, HOTELID, IS_MEMBER, MEMBERID, CHECKIN, CHECKOUT, COST, CLUB_HOURS) VALUES (%d, %d, %d, %d, '%s', '%s', %d, %d)" % (	
-                row["ROOMNO"],	
-                row["HOTELID"],	
-                row["ISMEMBER"],	
-                row["MEMBERID"],	
-                row["CHECKIN"],	
-                row["CHECKOUT"],	
-                row["COST"],	
-                row["CLUB_HOURS"]	
-            )	
-        else:	
-            query = "INSERT INTO GUESTS (ROOMNO, HOTELID, IS_MEMBER, CHECKIN, CHECKOUT, COST, CLUB_HOURS) VALUES (%d, %d, %d, '%s', '%s', %d, %d)" % (	
-                row["ROOMNO"],	
-                row["HOTELID"],	
-                row["ISMEMBER"],	
-                row["CHECKIN"],	
-                row["CHECKOUT"],	
-                row["COST"],	
-                row["CLUB_HOURS"]	
-            )	
+        for result in results:
+            query = "SELECT COST_PER_HOUR FROM CLUBS WHERE \
+                    HOTELID=%s AND \
+                    TYPE='%s' AND \
+                    MONTH=%s AND \
+                    YEAR=%s"%(hotelid,result["CLUB_TYPE"],result["MONTH"],result["YEAR"])
+            cur.execute(query)
+            result1 = cur.fetchone()
+            club_cost = (club_cost + result1["COST_PER_HOUR"] * result["CLUB_HOURS_USED"])
+        
+        query = "SELECT TYPE FROM ROOMS WHERE \
+                NUMBER=%s AND \
+                HOTELID=%s "%(roomno , hotelid)
+        cur.execute(query)
+        type_result = cur.fetchone()
+        type_query = "SELECT RATE FROM ROOM_TYPE WHERE TYPE=%s"%(type_result["TYPE"])
+        cur.execute(type_query)
+        type_cost = cur.fetchone()
+        start_date = datetime.strptime(checkin, date_format)
+        end_date = datetime.strptime(checkout, date_format)
+        stay_days = end_date - start_date
+        tot_stays = stay_days.days + 1
+        stay_cost = tot_stays * type_cost["RATE"]
 
-        cur.execute(query)	
+        member_check_query = "SELECT IS_MEMBER , MEMBERID FROM GUESTS WHERE \
+                            ROOMNO=%s AND \
+                            HOTELID=%s AND \
+                            CHECKIN='%s' AND \
+                            CHECKOUT='%s' "%(roomno,hotelid,checkin,checkout)
+        cur.execute(member_check_query)
+        member_check = cur.fetchone()
+        if not (member_check["MEMBERID"] is None) :
+            query = "SELECT TIER , STAYS FROM MEMBERS WHERE ID=%s"%(member_check["MEMBERID"])
+            cur.execute(query)
+            member_stats = cur.fetchone()
+            member_discount = member_discount + member_discount_dict[member_stats["TIER"]]
+            if member_stats["STAYS"] >= 100:
+                member_discount = member_discount + member_stays_dict[100]
+            elif member_stats["STAYS"] >= 50:
+                member_discount = member_discount + member_stays_dict[50]
+            elif member_stats["STAYS"] >= 10:
+                member_discount = member_discount + member_stays_dict[10]
 
-        # Set room status as occupied	
-        update_rooms_status = "UPDATE ROOMS SET STATUS = 1 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])	
-        cur.execute(update_rooms_status)	
+        print("Your total stay cost is:  " , stay_cost)
+        print("Your total club cost is: " , club_cost)
+        print("Discount :" , member_discount)
+        grand_total = stay_cost + club_cost - member_discount
+        print("Your grand total is: ", grand_total)
 
-        if row["ISMEMBER"]:  # increment number of stays	
-            member_query = "UPDATE MEMBERS SET STAYS = STAYS + 1 WHERE ID = %d" % (row["MEMBERID"])	
-            cur.execute(member_query)	
-            print("Member stays updated")	
-
-        con.commit()	
-
-        print("Guest checked in.")	
-
-
-def remove_guest():	
-    if True:	
-        row = {}	
-        print("Enter Guest details: ")	
-        row["ROOMNO"] = int(input("Room number: "))	
-        row["HOTELID"] = int(input("Hotel ID: "))	
-        row["CHECKIN"] = input("Checkin date: ")	
-        row["CHECKOUT"] = input("Checkout date: ")	
-
-        if not guest_exists(row["ROOMNO"], row["HOTELID"], row["CHECKIN"], row["CHECKOUT"]):	
-            print("Guest does not exist")	
-            return	
-
-        query = "DELETE FROM GUESTS WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (	
-            row["ROOMNO"],	
-            row["HOTELID"],	
-            row["CHECKIN"],	
-            row["CHECKOUT"]	
-        )	
-        cur.execute(query)	
-
-        update_rooms_status = "UPDATE ROOMS SET STATUS = 0 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])	
-        cur.execute(update_rooms_status)	
-
-        con.commit()	
-
-
-        print(update_rooms_status)	
-        print("Guest successfully checked out. Room emptied.")	
-
-
-def view_employees(hId):
-    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s)" % (
-        hId)
-    print(query)
-    cur.execute(query)
-    rows = cur.fetchall
-    for row in cur:
-        print(row)
-        print(row["ID"], row["FNAME"], row["LNAME"])
-    print("\n")
-
+    except Exception as e:
+        print("Couldn't generate bill \n")
+        print(e)
+        
+    
 def handle_views():
     print("Select from the following to retrieve information: ")
     print("Choose a VIEW option\n\n")
@@ -1264,6 +1251,7 @@ def handle_views():
         print("2. Unoccupied rooms of a hotel")
         print("3. Rooms in a hotel currently occupied")
         print("4. Guest staying in room")
+
 
 # Global
 while(1):
@@ -1327,6 +1315,8 @@ while(1):
                     add_guest()	
                 elif (ch == 5):	
                     remove_guest()
+                elif (ch == 10):
+                    cost_guest()
                 elif ch == 20:
                     break
                 tmp = input("Enter any key to CONTINUE>")
