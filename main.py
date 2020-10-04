@@ -382,7 +382,7 @@ def modify_employee(id):
         cur.execute(query)
         con.commit()
 
-    elif (attr == "e7" or attr == "e8"):
+    # elif (attr == "e7" or attr == "e8"):
         
 
     
@@ -756,7 +756,7 @@ def add_guest():
         if row["ISMEMBER"] == 0:
             row["MEMBERID"] = None
         else:
-            row["MEMBERID"] = input("Member ID: ")
+            row["MEMBERID"] = int(input("Member ID: "))
         row["CHECKIN"] = input("Checkin date: ")
         row["CHECKOUT"] = input("Checkout date: ")
         row["COST"] = 0
