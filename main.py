@@ -857,7 +857,45 @@ def remove_service_staff_room():
     # except Exception as e:
     #    print(e)
 
-
+def finance_report():
+    '''
+    Generates Finance report for a give hotelid , month , year
+    '''
+    try:
+        hotelid = int(input("Enter hotel id: "))
+        month = int(input("Enter Month: "))
+        year = int(input("Year: "))
+        if not finances_exists(hotelid,month,year):
+            print("No such Finance entry has been made. \n")
+            return
+        query = "SELECT * FROM FINANCES NATURAL JOIN EXPENDITURE NATURAL JOIN PROFIT WHERE \
+                FINANCES.HOTELID=%s AND \
+                FINANCES.MONTH=%s AND \
+                FINANCES.YEAR=%s "%(hotelid,month,year)
+        cur.execute(query)
+        finances = cur.fetchone()
+        managerid_query = "SELECT MANAGERID , FNAME , LNAME FROM HOTEL JOIN EMPLOYEE WHERE \
+                            HOTEL.ID=%s AND \
+                            EMPLOYEE.ID=HOTEL.MANAGERID"%(hotelid)
+        cur.execute(managerid_query)
+        manager_details = cur.fetchone()
+        print("------------------------FINANCE REPORT-----------------------\n")
+        print("MONTH:                ",month)
+        print("YEAR:                 ",year)
+        print("HOTELID:              ",hotelid)
+        print("MANAGERID:            ",manager_details["MANAGERID"])
+        print("MANAGER NAME:         ",manager_details["FNAME"], " ", manager_details["LNAME"])
+        print("EMPLOYEE EXPENDITURE: ",finances["EMP_EXP"])
+        print("SERVICE EXPENDITURE:  ",finances["SERVICE_EXP"])
+        print("ELECTRICITY BILL:     ",finances["ELEC_BILL"])
+        print("HOTEL BILL:           ",finances["HOTEL_BILL"])
+        print("TOTAL EXPENDITURE:    ",finances["TOTAL_EXP"])
+        print("TOTAL INCOME:         ",finances["TOTAL_INCOME"])
+        print("TOTAL PROFIT:         ",finances["TOTAL_PROFIT"])
+        print("-------------------------------------------------------------\n")
+    except Exception as e:
+        print("Failed to generate report \n")
+        print(e)
 
 def add_guest():
     if True:
@@ -1195,38 +1233,39 @@ def cost_guest():
     except Exception as e:
         print("Couldn't generate bill \n")
         print(e)
+
+def view_employees(hId):	
+    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s)" % (	
+        hId)	
+    # print(query)	
+    cur.execute(query)	
+    rows = cur.fetchall	
+    for row in cur:	
+        print(row)	
+        print(row["ID"], row["FNAME"], row["LNAME"])	
+    print("\n")	
+
+
+def view_fired_employees(hId):	
+    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s) and status != 'employed" % (	
+        hId)	
+    cur.execute(query)	
+    rows = cur.fetchall	
+    for row in cur:	
+        # print(row)	
+        print(row["ID"], row["FNAME"], row["LNAME"])	
+    print("\n")	
+
+def view_service_staff(hId):	
+    query = "select * from employee where id in (select id from service_staff) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (	
+        hId)	
+    cur.execute(query)	
+    rows = cur.fetchall	
+    for row in cur:	
+        # print(row)	
+        print(row["ID"], row["FNAME"], row["LNAME"])	
+    print("\n")
         
-def view_employees(hId):
-    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s)" % (
-        hId)
-    # print(query)
-    cur.execute(query)
-    rows = cur.fetchall
-    for row in cur:
-        print(row)
-        print(row["ID"], row["FNAME"], row["LNAME"])
-    print("\n")
-
-
-def view_fired_employees(hId):
-    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s) and status != 'employed" % (
-        hId)
-    cur.execute(query)
-    rows = cur.fetchall
-    for row in cur:
-        # print(row)
-        print(row["ID"], row["FNAME"], row["LNAME"])
-    print("\n")
-
-def view_service_staff(hId):
-    query = "select * from employee where id in (select id from service_staff) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
-        hId)
-    cur.execute(query)
-    rows = cur.fetchall
-    for row in cur:
-        # print(row)
-        print(row["ID"], row["FNAME"], row["LNAME"])
-    print("\n")
     
 def handle_views():
     print("Select from the following to retrieve information: ")
@@ -1338,6 +1377,8 @@ while(1):
                     add_room()
                 elif ch == 7:
                     add_guest_club()
+                elif ch == 9:
+                    finance_report()
                 elif (ch == 11):
                     add_member()
                 elif (ch == 8):
