@@ -687,7 +687,8 @@ def remove_service_staff_room():
         con.commit()
 
         print("Successfully un-assigned")
-
+    # except Exception as e:
+    #    print(e)
 
 def dispatch():
     """
