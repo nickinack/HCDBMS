@@ -663,6 +663,9 @@ def add_club():
         )
         cur.execute(club_query)
         clubs_res = cur.fetchone()
+
+        create_finances_if_not_exist(row["HOTELID"], row["MONTH"], row["YEAR"])
+        
         if clubs_res is not None:
             ch = input("Overriding existing club information for the month, continue? (y/n) ")
             if ch != 'y':
@@ -691,6 +694,7 @@ def add_club():
             finance_exp = "UPDATE FINANCES SET SERVICE_EXP = SERVICE_EXP + %d, TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
                 row["SERVICE_EXP"], row["TOTAL_INCOME"], row["HOTELID"], row["MONTH"], row["YEAR"]
             )
+            print(finance_exp)
             cur.execute(finance_exp)
         
         con.commit()
