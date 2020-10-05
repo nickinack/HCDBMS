@@ -1175,6 +1175,7 @@ def cost_guest():
             return
         if not guest_exists(roomno,hotelid,checkin,checkout):
             print("No such guest with the matching details exists \n")
+            return
 
         query = "SELECT CLUB_TYPE,CLUB_HOURS_USED,MONTH,YEAR FROM MASTER_RELATIONSHIP WHERE \
                 ROOMNO=%s AND \
