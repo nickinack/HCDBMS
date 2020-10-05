@@ -625,7 +625,8 @@ def add_club():
             row["HOTELID"], row["TYPE"], row["MONTH"], row["YEAR"]
         )
         cur.execute(club_query)
-        if cur.fetchone() is not None:
+        clubs_res = cur.fetchone()
+        if clubs_res is not None:
             ch = input("Overriding existing club information for the month, continue? (y/n) ")
             if ch != 'y':
                 print("Aborting.")
@@ -635,16 +636,26 @@ def add_club():
                     row["SUPID"], row["SERVICE_EXP"], row["COST_PER_HOUR"], row["TOTAL_INCOME"],
                     row["TYPE"], row["HOTELID"], row["MONTH"], row["YEAR"]
                 )
+            cur.execute(query)
+            finance_exp = "UPDATE FINANCES SET SERVICE_EXP = SERVICE_EXP + %d, TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+                row["SERVICE_EXP"], row["TOTAL_INCOME"], row["HOTELID"], row["MONTH"], row["YEAR"]
+            )
+            print(finance_exp)
+            cur.execute(finance_exp)
         else:
             query = "INSERT INTO CLUBS(HOTELID,  TYPE, SERVICE_EXP, MONTH, YEAR, TOTAL_INCOME, COST_PER_HOUR, SUPID) \
                 VALUES('%d', '%s', '%d', '%d', '%d', '%d', '%d', %d)" % (
                     row["HOTELID"], row["TYPE"], row["SERVICE_EXP"], row["MONTH"], 
                     row["YEAR"], row["TOTAL_INCOME"], row["COST_PER_HOUR"], row["SUPID"]
                 )
+            print(query)
+            cur.execute(query)
 
-        print(query)
-
-        cur.execute(query)
+            finance_exp = "UPDATE FINANCES SET SERVICE_EXP = SERVICE_EXP + %d, TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+                row["SERVICE_EXP"], row["TOTAL_INCOME"], row["HOTELID"], row["MONTH"], row["YEAR"]
+            )
+            cur.execute(finance_exp)
+        
         con.commit()
 
 def add_room():
@@ -1087,8 +1098,12 @@ def add_guest_club():
                 club_type_query = "INSERT INTO CLUBS (HOTELID, TYPE, MONTH, YEAR, SUPID, COST_PER_HOUR, SERVICE_EXP) VALUES (%d, '%s', %d, %d, %d, %d, %d)" % (
                     row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"], supid, cost_per_hour, service_exp
                 )
-
                 cur.execute(club_type_query)
+
+                finance_exp = "UPDATE FINANCES SET SERVICE_EXP = SERVICE_EXP + %d, TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+                    row["SERVICE_EXP"], row["TOTAL_INCOME"], row["HOTELID"], row["MONTH"], row["YEAR"]
+                )
+                cur.execute(finance_exp)
         
         create_finances_if_not_exist(row["HOTELID"], row["MONTH"], row["YEAR"])
 
@@ -1153,6 +1168,11 @@ def add_guest_club():
                 row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"]
             )
         cur.execute(club_income_update)
+
+        finance_exp = "UPDATE FINANCES SET TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+            row["CLUB_HOURS_USED"] * club_rate, row["HOTELID"], row["MONTH"], row["YEAR"]
+        )
+        cur.execute(finance_exp)
 
         con.commit()
 
