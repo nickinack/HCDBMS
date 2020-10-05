@@ -65,7 +65,7 @@ def addLocation():
         print(e)  
         
 def hireAnEmployee(hotelid_default=None):
-    try:
+    if True:
         # Takes emplyee details as input
         row = {}
         print("Enter new employee's details: ")
@@ -90,7 +90,7 @@ def hireAnEmployee(hotelid_default=None):
         query = "INSERT INTO EMPLOYEE (FNAME, LNAME, ID, DOB, EMAIL, JOINDATE, SALARY, STATUS, PHONE) VALUES('%s','%s', %s, '%s', '%s', '%s', %s, '%s',%s)" % (row["FNAME"], row["LNAME"], row["ID"], row["DOB"], row["EMAIL"], row["JOINDATE"], row["SALARY"], row["STATUS"],row["PHONE"])
         print(query)
         cur.execute(query)
-        con.commit()
+        
         print("Inserted Into Employee Database")
         position = input("Enter the position of the employee (supervisor/service_staff/manager): ")
         if position == "supervisor":
@@ -102,7 +102,7 @@ def hireAnEmployee(hotelid_default=None):
         if hotel_exists(hotelid):
             belongs_to(hotelid,id)
         
-        year, month = int(row["JOINDATE"]).split('-')[0], int(row["JOINDATE"].split('-'))[1]
+        year, month = int(row["JOINDATE"].split('-')[0]), int(row["JOINDATE"].split('-')[1])
 
         create_finances_if_not_exist(hotelid, month, year)
 
@@ -113,10 +113,10 @@ def hireAnEmployee(hotelid_default=None):
         con.commit()
 
 
-    except Exception as e:
-        con.rollback()
-        print("Failed to insert into database")
-        print(e)
+    # except Exception as e:
+    #     con.rollback()
+    #     print("Failed to insert into database")
+    #     print(e)
 
     return
 
@@ -247,31 +247,31 @@ def add_manager(id):
     '''
     Add a manager
     '''
-    try:
+    if True:
         query = "INSERT INTO MANAGER (ID) VALUES(%d)"%(id)
         cur.execute(query)
-        con.commit()
         print("Inserted into Manager table")
-    except Exception as e:
-        con.rollback()
-        print("Failed to insert into manager table")
-        query = "DELETE FROM EMPLOYEE WHERE ID=%s"%(id)
-        cur.execute(query)
-        con.commit()
-        print(e)
+    # except Exception as e:
+    #     con.rollback()
+    #     print("Failed to insert into manager table")
+    #     query = "DELETE FROM EMPLOYEE WHERE ID=%s"%(id)
+    #     cur.execute(query)
+    #     con.commit()
+    #     print(e)
 
 def belongs_to(hotelid , empid):
     '''
     Implement Belongs to relationship
     '''
-    try:
-        query = "INSERT INTO BELONGS_TO VALUES (%s,%s)"%(hotelid,empid)
+    if True:
+        query = "INSERT INTO BELONGS_TO (HOTELID, EMPID) VALUES (%s,%s)"%(hotelid,empid)
+        print(query)
         cur.execute(query)
         con.commit()
         print("Successfully added employee to hotel")
-    except Exception as e:
-        print("Failed to connect employee to hotel")
-        print(e)
+    # except Exception as e:
+    #     print("Failed to connect employee to hotel")
+    #     print(e)
 
 def change_supervsior_manager(id):
     '''
@@ -665,7 +665,7 @@ def add_club():
         clubs_res = cur.fetchone()
 
         create_finances_if_not_exist(row["HOTELID"], row["MONTH"], row["YEAR"])
-        
+
         if clubs_res is not None:
             ch = input("Overriding existing club information for the month, continue? (y/n) ")
             if ch != 'y':
@@ -1600,7 +1600,6 @@ def handle_views():
         print("3. Rooms in a hotel currently occupied")
         print("4. Guest staying in room")
 
-
 # Global
 while(1):
     tmp = sp.call('clear', shell=True)
@@ -1628,6 +1627,7 @@ while(1):
         tmp = input("Enter any key to CONTINUE>")
 
         with con.cursor() as cur:
+            print("Here")
             while(1):
                 # Here taking example of Employee Mini-world
                 print("0. Get data")
