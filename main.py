@@ -4,22 +4,22 @@ import pymysql.cursors
 from datetime import datetime
 
 
-
-def add_hotel():      
+def add_hotel():
     """
     Add a new hotel
     """
     if True:
-        #Takes Hotel's details
+        # Takes Hotel's details
         try:
             print("Enter Hotel Details: ")
             id = input("Hotel ID: ")
             name = input("Name: ")
             managerid = input("Manager ID: ")
             maanger_flag = ""
-            #Check if Manager exists in the database
+            # Check if Manager exists in the database
             if not manager_exists(managerid):
-                manager_flag = input("No such Manager exists , would you like to add a new manager(0/1)?: ")
+                manager_flag = input(
+                    "No such Manager exists , would you like to add a new manager(0/1)?: ")
                 if manager_flag:
                     hireAnEmployee(id)
                 else:
@@ -28,20 +28,22 @@ def add_hotel():
             stars = input("Stars: ")
             locationid = addLocation()
             print(locationid)
-            query = "INSERT INTO HOTEL VALUES ('%s','%s','%s','%s','%s')"%(id,name,managerid,locationid['ID'],stars)
+            query = "INSERT INTO HOTEL VALUES ('%s','%s','%s','%s','%s')" % (
+                id, name, managerid, locationid['ID'], stars)
             print(query)
             cur.execute(query)
             con.commit()
             if manager_flag:
-                belongs_to(id,managerid)
+                belongs_to(id, managerid)
         except Exception as e:
             con.rollback()
             print("Failed to insert new hotel")
-            query = "DELETE FROM LOCATION WHERE ID='%s'"%(locationid['ID'])
+            query = "DELETE FROM LOCATION WHERE ID='%s'" % (locationid['ID'])
             cur.execute(query)
             con.commit()
             print("Deleted Location")
             print(e)
+
 
 def addLocation():
     '''
@@ -52,18 +54,21 @@ def addLocation():
         city = input("City: ")
         country = input("Country: ")
         zipcode = input("Zipcode: ")
-        query = "INSERT INTO LOCATION (STREET,CITY,COUNTRY,ZIPCODE) VALUES ('%s','%s','%s','%s')"%(street,city,country,zipcode)
+        query = "INSERT INTO LOCATION (STREET,CITY,COUNTRY,ZIPCODE) VALUES ('%s','%s','%s','%s')" % (
+            street, city, country, zipcode)
         print(query)
         cur.execute(query)
         con.commit()
-        cur.execute("SELECT ID FROM LOCATION WHERE STREET='%s' AND CITY='%s' AND COUNTRY='%s' AND ZIPCODE='%s'"%(street,city,country,zipcode))
+        cur.execute("SELECT ID FROM LOCATION WHERE STREET='%s' AND CITY='%s' AND COUNTRY='%s' AND ZIPCODE='%s'" % (
+            street, city, country, zipcode))
         locationid = cur.fetchone()
         return locationid
     except Exception as e:
         con.rollback()
         print("Failed to insert location\n")
-        print(e)  
-        
+        print(e)
+
+
 def hireAnEmployee(hotelid_default=None):
     try:
         # Takes emplyee details as input
@@ -75,7 +80,8 @@ def hireAnEmployee(hotelid_default=None):
         row["ID"] = int(input("Input id: "))
         if emp_exists(row["ID"]) and emp_fired(row["ID"]):
             print("Hey")
-            query = "UPDATE EMPLOYEE SET STATUS='Currently Employed' WHERE ID=%s"%(row["ID"])
+            query = "UPDATE EMPLOYEE SET STATUS='Currently Employed' WHERE ID=%s" % (
+                row["ID"])
             return
         row["DOB"] = input("Birth Date (YYYY-MM-DD): ")
         row["EMAIL"] = input("email: ")
@@ -87,12 +93,14 @@ def hireAnEmployee(hotelid_default=None):
         if not hotel_exists(hotelid) and hotelid_default is None:
             print("No Such hotel exists")
             return
-        query = "INSERT INTO EMPLOYEE (FNAME, LNAME, ID, DOB, EMAIL, JOINDATE, SALARY, STATUS, PHONE) VALUES('%s','%s', %s, '%s', '%s', '%s', %s, '%s',%s)" % (row["FNAME"], row["LNAME"], row["ID"], row["DOB"], row["EMAIL"], row["JOINDATE"], row["SALARY"], row["STATUS"],row["PHONE"])
+        query = "INSERT INTO EMPLOYEE (FNAME, LNAME, ID, DOB, EMAIL, JOINDATE, SALARY, STATUS, PHONE) VALUES('%s','%s', %s, '%s', '%s', '%s', %s, '%s',%s)" % (
+            row["FNAME"], row["LNAME"], row["ID"], row["DOB"], row["EMAIL"], row["JOINDATE"], row["SALARY"], row["STATUS"], row["PHONE"])
         print(query)
         cur.execute(query)
         con.commit()
         print("Inserted Into Employee Database")
-        position = input("Enter the position of the employee (supervisor/service_staff/manager): ")
+        position = input(
+            "Enter the position of the employee (supervisor/service_staff/manager): ")
         if position == "supervisor":
             add_supervisor(row["ID"])
         elif position == "service_staff":
@@ -100,9 +108,10 @@ def hireAnEmployee(hotelid_default=None):
         elif position == "manager":
             add_manager(row["ID"])
         if hotel_exists(hotelid):
-            belongs_to(hotelid,id)
-        
-        year, month = int(row["JOINDATE"]).split('-')[0], int(row["JOINDATE"].split('-'))[1]
+            belongs_to(hotelid, id)
+
+        year, month = int(row["JOINDATE"]).split(
+            '-')[0], int(row["JOINDATE"].split('-'))[1]
 
         create_finances_if_not_exist(hotelid, month, year)
 
@@ -112,13 +121,13 @@ def hireAnEmployee(hotelid_default=None):
         cur.execute(finance_exp_update)
         con.commit()
 
-
     except Exception as e:
         con.rollback()
         print("Failed to insert into database")
         print(e)
 
     return
+
 
 def fireAnEmployee():
     '''
@@ -137,42 +146,47 @@ def fireAnEmployee():
             return
 
         if manager_exists(id):
-            query = "DELETE FROM MANAGER WHERE ID=%s"%(id)
+            query = "DELETE FROM MANAGER WHERE ID=%s" % (id)
             position = "Manager"
             if manages_supervisor(id):
-                input_flag = input("Manager is currently managing list of supervisors; would you like to change the manager for these supervisors (yes/no)?: ")
+                input_flag = input(
+                    "Manager is currently managing list of supervisors; would you like to change the manager for these supervisors (yes/no)?: ")
                 if input_flag == "yes":
                     change_supervsior_manager(id)
                 else:
                     return
             if manages_hotel(id):
-                input_flag = input("Manager manages the hotel; would you like to change the manager for the hotel (yes/no)?: ")
+                input_flag = input(
+                    "Manager manages the hotel; would you like to change the manager for the hotel (yes/no)?: ")
                 if input_flag == "yes":
                     change_hotel_manager(id)
                 else:
                     return
 
         if service_staff_exists(id):
-            query = "DELETE FROM SERVICE STAFF WHERE ID=%s"%(id)
+            query = "DELETE FROM SERVICE STAFF WHERE ID=%s" % (id)
             position = "Service staff"
             if service_staff_room_exists(id):
-                input_flag = input("Service staff is currently involved with room cleaning services; would you like to change the service staff for these rooms (yes/no): ")
+                input_flag = input(
+                    "Service staff is currently involved with room cleaning services; would you like to change the service staff for these rooms (yes/no): ")
                 if input_flag == "yes":
                     change_room_service_staff(id)
                 else:
-                    return 
+                    return
 
         if supervisor_exists(id):
-            query = "DELETE FROM SUPERVISOR WHERE ID=%s"%(id)
+            query = "DELETE FROM SUPERVISOR WHERE ID=%s" % (id)
             position = "Supervisor"
             if supervises_service_staff(id):
-                input_flag = input("Supervisor is supervising some service staff members; would you like to change the service staff for these employees (yes/no)?: ")
+                input_flag = input(
+                    "Supervisor is supervising some service staff members; would you like to change the service staff for these employees (yes/no)?: ")
                 if input_flag == "yes":
                     change_supervisor_service_staff(id)
                 else:
                     return
             if supervises_clubs(id):
-                input_flag = input("Supervisor is supervising clubs; would you like to change the supervisor for the clubs associated (yes/no)?: ")
+                input_flag = input(
+                    "Supervisor is supervising clubs; would you like to change the supervisor for the clubs associated (yes/no)?: ")
                 if input_flag == "yes":
                     pass
                 else:
@@ -181,23 +195,25 @@ def fireAnEmployee():
         changeEmpStatus(id)
         cur.execute(query)
         con.commit()
-        print(position , " fired; records still present with status fired")
-    
+        print(position, " fired; records still present with status fired")
+
     except Exception as e:
         con.rollback()
         print("Failed to remove employee \n")
         print(e)
 
+
 def changeEmpStatus(id):
     try:
-        query = "UPDATE EMPLOYEE SET STATUS='FIRED' WHERE ID=%s"%(id)
+        query = "UPDATE EMPLOYEE SET STATUS='FIRED' WHERE ID=%s" % (id)
         cur.execute(query)
         con.commit()
         print("Successfully changes the employee's status")
     except Exception as e:
         con.rollback()
         print("Failed to change the status of the employee")
-        print(e) 
+        print(e)
+
 
 def add_supervisor(id):
     '''
@@ -209,18 +225,19 @@ def add_supervisor(id):
             print("No such manager exists")
             return
         dept = input("Department: ")
-        query = "INSERT INTO SUPERVISOR VALUES (%s,%s,'%s')"%(id,managerid,dept)
+        query = "INSERT INTO SUPERVISOR VALUES (%s,%s,'%s')" % (
+            id, managerid, dept)
         cur.execute(query)
         con.commit()
         print("Inserted into supervisor table successfully")
     except Exception as e:
         print("Failed to add supervisor")
-        query = "DELETE FROM EMPLOYEE WHERE ID=%s"%(id)
+        query = "DELETE FROM EMPLOYEE WHERE ID=%s" % (id)
         cur.execute(query)
         con.commit()
         print(e)
-            
-    
+
+
 def add_service_staff(id):
     '''
     Add a service staff
@@ -231,47 +248,50 @@ def add_service_staff(id):
             print("No such supervisor exists")
             return
         dept = input("Department: ")
-        query = "INSERT INTO SERVICE_STAFF VALUES (%s,%s,'%s')"%(id,superid,dept)
+        query = "INSERT INTO SERVICE_STAFF VALUES (%s,%s,'%s')" % (
+            id, superid, dept)
         cur.execute(query)
         con.commit()
         print("Inserted into service staff successfully")
     except Exception as e:
         print("Failed to add service staff")
-        query = "DELETE FROM EMPLOYEE WHERE ID=%s"%(id)
+        query = "DELETE FROM EMPLOYEE WHERE ID=%s" % (id)
         cur.execute(query)
         con.commit()
         print(e)
-        
+
 
 def add_manager(id):
     '''
     Add a manager
     '''
     try:
-        query = "INSERT INTO MANAGER (ID) VALUES(%d)"%(id)
+        query = "INSERT INTO MANAGER (ID) VALUES(%d)" % (id)
         cur.execute(query)
         con.commit()
         print("Inserted into Manager table")
     except Exception as e:
         con.rollback()
         print("Failed to insert into manager table")
-        query = "DELETE FROM EMPLOYEE WHERE ID=%s"%(id)
+        query = "DELETE FROM EMPLOYEE WHERE ID=%s" % (id)
         cur.execute(query)
         con.commit()
         print(e)
 
-def belongs_to(hotelid , empid):
+
+def belongs_to(hotelid, empid):
     '''
     Implement Belongs to relationship
     '''
     try:
-        query = "INSERT INTO BELONGS_TO VALUES (%s,%s)"%(hotelid,empid)
+        query = "INSERT INTO BELONGS_TO VALUES (%s,%s)" % (hotelid, empid)
         cur.execute(query)
         con.commit()
         print("Successfully added employee to hotel")
     except Exception as e:
         print("Failed to connect employee to hotel")
         print(e)
+
 
 def change_supervsior_manager(id):
     '''
@@ -281,16 +301,19 @@ def change_supervsior_manager(id):
         if (not manager_exists(id)) or (not emp_exists(id)) or (emp_fired(id)):
             print("Manager does not exist in the manager database / is fired")
             return
-        new_managerid = input("Select the new manager ID to whom you want to assign these supervisors to: ")
+        new_managerid = input(
+            "Select the new manager ID to whom you want to assign these supervisors to: ")
         if (not manager_exists(new_managerid)) or (not emp_exists(new_managerid)) or (emp_fired(new_managerid)):
             print("New manager ID invalid")
             return
-        query = "UPDATE SUPERVISOR SET MANAGERID=%s WHERE MANAGERID=%s"%(new_managerid,id)
+        query = "UPDATE SUPERVISOR SET MANAGERID=%s WHERE MANAGERID=%s" % (
+            new_managerid, id)
         cur.execute(query)
         con.commit()
     except Exception as e:
         print("Failed to change manager \n")
         print(e)
+
 
 def change_hotel_manager(id):
     '''
@@ -300,16 +323,19 @@ def change_hotel_manager(id):
         if (not manager_exists(id)) or (not emp_exists(id)) or (emp_fired(id)):
             print("Manager does not exist in the manager database / is fired")
             return
-        new_managerid = input("Select the new manager ID who will be taking care of the hotel: ")
+        new_managerid = input(
+            "Select the new manager ID who will be taking care of the hotel: ")
         if (not manager_exists(new_managerid)) or (not emp_exists(new_managerid)) or (emp_fired(new_managerid)):
             print("New Manager ID invalid")
             return
-        query = "UPDATE HOTEL SET MANAGERID=%s WHERE MANAGERID=%s"%(new_managerid,id)
+        query = "UPDATE HOTEL SET MANAGERID=%s WHERE MANAGERID=%s" % (
+            new_managerid, id)
         cur.execute(query)
         con.commit()
     except Exception as e:
         print("Failed to change manager \n")
         print(e)
+
 
 def change_room_service_staff(id):
     '''
@@ -319,15 +345,18 @@ def change_room_service_staff(id):
         if(not service_staff_exists(id)) or (not emp_exists(id)) or (emp_fired(id)):
             print("Service staff does not exist in the service staff database / is fired")
             return
-        new_service_staff_id = input("Enter the new service staff ID who will be taking care of the rooms: ")
+        new_service_staff_id = input(
+            "Enter the new service staff ID who will be taking care of the rooms: ")
         if (not service_staff_exists(new_service_staff_id)) or (not emp_exists(new_service_staff_id)) or (emp_fired(new_service_staff_id)):
             print("New Service staff ID is invalid")
-        query = "UPDATE SERVICE_STAFF_ROOM SET SERVICE_STAFF_ID=%s WHERE SERVICE_STAFF_ID=%s"%(new_service_staff_id,id)
+        query = "UPDATE SERVICE_STAFF_ROOM SET SERVICE_STAFF_ID=%s WHERE SERVICE_STAFF_ID=%s" % (
+            new_service_staff_id, id)
         cur.execute(query)
         con.commit()
     except Exception as e:
         print("Failed to change Service staff \n")
         print(e)
+
 
 def change_supervisor_service_staff(id):
     '''
@@ -336,17 +365,20 @@ def change_supervisor_service_staff(id):
     try:
         if (not supervisor_exists(id)) or (not emp_exists(id)) or (emp_fired(id)):
             print("Supervisor does not exist in the supervisor database / is fired")
-            return 
-        new_supid = input("Enter te new supervisor ID who will be supervising service staff: ")
+            return
+        new_supid = input(
+            "Enter te new supervisor ID who will be supervising service staff: ")
         if (not supervisor_exists(new_supid)) or (not emp_exists(new_supid)) or (emp_fired(new_supid)):
             print("New Supervisor ID is invalid")
             return
-        query = "UPDATE SERVICE_STAFF SET SUPID=%s WHERE SUPID=%s"%(new_supid,id)
+        query = "UPDATE SERVICE_STAFF SET SUPID=%s WHERE SUPID=%s" % (
+            new_supid, id)
         cur.execute(query)
         con.commit()
     except Exception as e:
         print("Failed to change Supervisor \n")
         print(e)
+
 
 def change_supervisor_club(id):
     '''
@@ -355,17 +387,19 @@ def change_supervisor_club(id):
     try:
         if (not supervisor_exists(id)) or (not emp_exists(id)) or (emp_fired(id)):
             print("Supervisor does not exist in the supervisor database / is fired")
-            return 
-        new_supid = input("Enter te new supervisor ID who will be supervising clubs: ")
+            return
+        new_supid = input(
+            "Enter te new supervisor ID who will be supervising clubs: ")
         if (not supervisor_exists(new_supid)) or (not emp_exists(new_supid)) or (emp_fired(new_supid)):
             print("New Supervisor ID is invalid")
             return
-        query = "UPDATE CLUBS SET SUPID=%s WHERE SUPID=%s"%(new_supid,id)
+        query = "UPDATE CLUBS SET SUPID=%s WHERE SUPID=%s" % (new_supid, id)
         cur.execute(query)
         con.commit()
     except Exception as e:
         print("Failed to change Supervisor \n")
         print(e)
+
 
 def modify_manager_for_one_supervisor(id):
     '''
@@ -376,15 +410,16 @@ def modify_manager_for_one_supervisor(id):
         if (not manager_exists(managerid)) or (not emp_exists(managerid)) or (emp_fired(managerid)):
             print("Manager does not exist in the database / is fired \n")
             return
-        
-        query = "UPDATE SUPERVISOR SET MANAGERID=%s WHERE ID=%s"%(managerid,id)
+
+        query = "UPDATE SUPERVISOR SET MANAGERID=%s WHERE ID=%s" % (
+            managerid, id)
         cur.execute(query)
         con.commit()
         print("Successully modified the manager for supervisor \n")
     except Exception as e:
         print("Failed to modify \n")
         print(e)
-    
+
 
 def modify_supervisor_for_one_service_staff(id):
     '''
@@ -396,13 +431,14 @@ def modify_supervisor_for_one_service_staff(id):
             print("Supervisor does not exis in the database / is fired")
             return
 
-        query = "UPDATE SERVICE_STAFF SET SUPID=%s WHERE ID=%s"%(supid,id)
+        query = "UPDATE SERVICE_STAFF SET SUPID=%s WHERE ID=%s" % (supid, id)
         cur.execute(query)
         con.commit()
         print("Successfully modieifed the supervisor for the service staff \n")
     except Exception as e:
         print("Failed to modify \n")
         print(e)
+
 
 def modify_service_staff_for_one_room():
     '''
@@ -411,19 +447,20 @@ def modify_service_staff_for_one_room():
     try:
         id = int(input("Enter employee ID: "))
         if (not service_staff_exists(id)) or (not emp_exists(id)) or (emp_fired(id)):
-            print("Employee does not exist / is not service staff / is fired") 
-        hotelid = "SELECT HOTELID FROM BELONGS_TO WHERE EMPID=%s"%(id)
+            print("Employee does not exist / is not service staff / is fired")
+        hotelid = "SELECT HOTELID FROM BELONGS_TO WHERE EMPID=%s" % (id)
         roomno = int(input("Enter Room number: "))
-        if not (room_hotel_exists(roomno,hotelid)):
+        if not (room_hotel_exists(roomno, hotelid)):
             print("Room does not exist in the hotel in which the employee works at \n")
             return
-        query = "UPDATE SERVICE_STAFF_ROOM SET SERVICE_STAFF_ID=%s WHERE ROOMNO=%s AND HOTELID=%s"%(id,roomno,hotelid)
+        query = "UPDATE SERVICE_STAFF_ROOM SET SERVICE_STAFF_ID=%s WHERE ROOMNO=%s AND HOTELID=%s" % (
+            id, roomno, hotelid)
         cur.execute()
         con.commit()
     except Exception as e:
         print("Failed to modify service staff details for the room \n")
         print(e)
-    
+
 
 def modify_employee():
     '''
@@ -451,26 +488,28 @@ def modify_employee():
         if position == "service_staff":
             print("e7. Supervisor")
             print("e8. Department")
-        
+
         attr = input("Enter the attribute you want to change: ")
         attr_dict = {
-            "e1" : "Fname",
-            "e2" : "Lname",
-            "e3" : "Phone",
-            "e4" : "Email",
-            "e5" : "DOB",
-            "e6" : "SALARY"
+            "e1": "Fname",
+            "e2": "Lname",
+            "e3": "Phone",
+            "e4": "Email",
+            "e5": "DOB",
+            "e6": "SALARY"
         }
 
         query = ""
         if not (attr == "e7" or attr == "e8"):
             change = input("Enter the new value for the attribute: ")
-            query = "UPDATE EMPLOYEE SET %s=%s WHERE ID=%s"%(attr_dict[attr],change,id)       
+            query = "UPDATE EMPLOYEE SET %s=%s WHERE ID=%s" % (
+                attr_dict[attr], change, id)
 
         elif (attr == "e7" or attr == "e8"):
             if position == "supervisor" and attr == "e7":
                 change = input("Enter the new value for department: ")
-                query = "UPDATE SUPERVISOR SET DEPT=%s WHERE ID=%s"%(change,id)
+                query = "UPDATE SUPERVISOR SET DEPT=%s WHERE ID=%s" % (
+                    change, id)
 
             if position == "supervisor" and attr == "e8":
                 modify_manager_for_one_supervisor(id)
@@ -482,7 +521,8 @@ def modify_employee():
 
             if position == "service_staff" and attr == "e8":
                 change = input("Enter nrew value for department")
-                query = "UPDATE SERVICE_STAFF SET DEPT=%s WHERE ID=%s"%(change,id)
+                query = "UPDATE SERVICE_STAFF SET DEPT=%s WHERE ID=%s" % (
+                    change, id)
 
         cur.execute(query)
         con.commit()
@@ -492,23 +532,29 @@ def modify_employee():
         print("Failed to insert into database \n")
         print(e)
 
+
 '''
-Helper functions start 
+Helper functions start
 '''
+
+
 def manager_exists(id):
-    query = "SELECT ID FROM MANAGER WHERE ID=%s"%(id)
+    query = "SELECT ID FROM MANAGER WHERE ID=%s" % (id)
     cur.execute(query)
     return cur.fetchone() is not None
+
 
 def supervisor_exists(id):
-    query = "SELECT ID FROM SUPERVISOR WHERE ID=%s"%(id)
+    query = "SELECT ID FROM SUPERVISOR WHERE ID=%s" % (id)
     cur.execute(query)
     return cur.fetchone() is not None
 
+
 def service_staff_exists(id):
-    query = "SELECT ID FROM SERVICE_STAFF WHERE ID=%s"%(id)
+    query = "SELECT ID FROM SERVICE_STAFF WHERE ID=%s" % (id)
     cur.execute(query)
     return cur.fetchone() is not None
+
 
 def populate_exp_profits(hotelid, month, year):
     query = "SELECT ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME FROM FINANCES \
@@ -518,7 +564,8 @@ def populate_exp_profits(hotelid, month, year):
     cur.execute(query)
     exp_res = cur.fetchone()
 
-    total_exp = exp_res["ELEC_BILL"] + exp_res["HOTEL_BILL"] + exp_res["SERVICE_EXP"] + exp_res["EMP_EXP"]
+    total_exp = exp_res["ELEC_BILL"] + exp_res["HOTEL_BILL"] + \
+        exp_res["SERVICE_EXP"] + exp_res["EMP_EXP"]
 
     query = "SELECT TOTAL_EXP FROM EXPENDITURE WHERE ELEC_BILL = %d AND HOTEL_BILL = %d  AND EMP_EXP = %d \
         AND SERVICE_EXP = %d AND TOTAL_INCOME = %d" % (
@@ -534,7 +581,7 @@ def populate_exp_profits(hotelid, month, year):
                 exp_res["SERVICE_EXP"], exp_res["TOTAL_INCOME"], total_exp
             )
         cur.execute(query)
-    
+
     query = "SELECT * FROM PROFIT WHERE TOTAL_EXP = %d AND TOTAL_INCOME = %d" % (
         total_exp, exp_res["TOTAL_INCOME"]
     )
@@ -552,40 +599,50 @@ def hotel_exists(id):
     cur.execute(hotel_query)
     return cur.fetchone() is not None
 
+
 def room_hotel_exists(roomno, hotelid):
-    room_query = "SELECT * FROM ROOMS WHERE NUMBER = %d AND HOTELID = %d" % (roomno, hotelid)
+    room_query = "SELECT * FROM ROOMS WHERE NUMBER = %d AND HOTELID = %d" % (
+        roomno, hotelid)
     cur.execute(room_query)
     return cur.fetchone() is not None
 
+
 def emp_exists(id):
-    query = "SELECT ID FROM EMPLOYEE WHERE ID=%s"%(id)
+    query = "SELECT ID FROM EMPLOYEE WHERE ID=%s" % (id)
     cur.execute(query)
     return cur.fetchone() is not None
 
+
 def emp_fired(id):
-    query = "SELECT STATUS FROM EMPLOYEE WHERE ID=%s"%(id)
+    query = "SELECT STATUS FROM EMPLOYEE WHERE ID=%s" % (id)
     cur.execute(query)
     return cur.fetchone() == "FIRED"
 
+
 def manages_supervisor(id):
-    query = "SELECT MANAGERID FROM SUPERVISOR WHERE MANAGERID=%s"%(id)
+    query = "SELECT MANAGERID FROM SUPERVISOR WHERE MANAGERID=%s" % (id)
     cur.execute(query)
     return cur.fetchone() is not None
+
 
 def supervises_service_staff(id):
-    query = "SELECT ID FROM SUPERVISOR WHERE ID=%s"%(id)
+    query = "SELECT ID FROM SUPERVISOR WHERE ID=%s" % (id)
     cur.execute(query)
     return cur.fetchone() is not None
 
+
 def service_staff_room_exists(id):
-    query = "SELECT SERVICE_STAFF_ID FROM SERVICE_STAFF_ROOM WHERE SERVICE_STAFF_ID=%s"%(id)
+    query = "SELECT SERVICE_STAFF_ID FROM SERVICE_STAFF_ROOM WHERE SERVICE_STAFF_ID=%s" % (
+        id)
     cur.execute(query)
     return cur.fetchone is not None
 
+
 def manages_hotel(id):
-    query = "SELECT ID FROM HOTEL WHERE MANAGERID=%s"%(id)
+    query = "SELECT ID FROM HOTEL WHERE MANAGERID=%s" % (id)
     cur.execute(query)
     return cur.fetchone() is not None
+
 
 def create_finances_if_not_exist(hotelid, month, year):
     if not finances_exists(hotelid, month, year):
@@ -593,10 +650,12 @@ def create_finances_if_not_exist(hotelid, month, year):
         elec_bill = int(input("Electricity bill: "))
         hotel_bill = int(input("Hotel bill "))
 
-        query = "INSERT INTO FINANCES (HOTELID, MONTH, YEAR, elec_bill, hotel_bill) VALUES (%d, %d, %d, %d, %d)" % (hotelid, month, year, elec_bill, hotel_bill)
+        query = "INSERT INTO FINANCES (HOTELID, MONTH, YEAR, elec_bill, hotel_bill) VALUES (%d, %d, %d, %d, %d)" % (
+            hotelid, month, year, elec_bill, hotel_bill)
         cur.execute(query)
         print("Inserting into finances")
-        con.commit() 
+        con.commit()
+
 
 def finances_exists(hotelid, month, year):
     query = "SELECT * FROM FINANCES WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
@@ -605,39 +664,46 @@ def finances_exists(hotelid, month, year):
     cur.execute(query)
     return cur.fetchone() is not None
 
+
 def supervises_clubs(id):
-    query = "SELECT SUPID FROM CLUBS WHERE SUPID=%s"%(id)
+    query = "SELECT SUPID FROM CLUBS WHERE SUPID=%s" % (id)
     cur.execute(query)
     return cur.fetchone() is not None
 
-def is_room_empty(roomno, hotelid):	
-    room_status_query = "SELECT STATUS FROM ROOMS WHERE NUMBER = %d AND HOTELID = %d" % (roomno, hotelid)	
-    cur.execute(room_status_query)	
-    query_res = cur.fetchone()	
 
-    if query_res is None:	
-        return False	
+def is_room_empty(roomno, hotelid):
+    room_status_query = "SELECT STATUS FROM ROOMS WHERE NUMBER = %d AND HOTELID = %d" % (
+        roomno, hotelid)
+    cur.execute(room_status_query)
+    query_res = cur.fetchone()
 
-    return query_res["STATUS"] == b'\x00'	
+    if query_res is None:
+        return False
 
-def guest_exists(roomno, hotelid, checkin, checkout):	
-    query = "SELECT * FROM GUESTS WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (	
-        roomno, hotelid, checkin, checkout	
-    )	
-    cur.execute(query)	
+    return query_res["STATUS"] == b'\x00'
+
+
+def guest_exists(roomno, hotelid, checkin, checkout):
+    query = "SELECT * FROM GUESTS WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (
+        roomno, hotelid, checkin, checkout
+    )
+    cur.execute(query)
     return cur.fetchone() is not None
 
-def member_exists(id):	
-    query = "SELECT * FROM MEMBERS WHERE ID = %d" % (id)	
-    cur.execute(query)	
+
+def member_exists(id):
+    query = "SELECT * FROM MEMBERS WHERE ID = %d" % (id)
+    cur.execute(query)
     return cur.fetchone() is not None
+
 
 '''
 Helper functions end
 '''
 
+
 def add_club():
-    
+
     if True:  # try-catch exempted for testing purposes
         # Takes emplyee details as input
         row = {}
@@ -654,7 +720,7 @@ def add_club():
         if not hotel_exists(row["HOTELID"]):
             print("Error at add_club(): Hotel does not exist")
             return
-        
+
         while not supervisor_exists(row["SUPID"]):
             row["SUPID"] = int(input("Incorrect supervisor ID: "))
 
@@ -665,9 +731,10 @@ def add_club():
         clubs_res = cur.fetchone()
 
         create_finances_if_not_exist(row["HOTELID"], row["MONTH"], row["YEAR"])
-        
+
         if clubs_res is not None:
-            ch = input("Overriding existing club information for the month, continue? (y/n) ")
+            ch = input(
+                "Overriding existing club information for the month, continue? (y/n) ")
             if ch != 'y':
                 print("Aborting.")
                 return
@@ -685,7 +752,7 @@ def add_club():
         else:
             query = "INSERT INTO CLUBS(HOTELID,  TYPE, SERVICE_EXP, MONTH, YEAR, TOTAL_INCOME, COST_PER_HOUR, SUPID) \
                 VALUES('%d', '%s', '%d', '%d', '%d', '%d', '%d', %d)" % (
-                    row["HOTELID"], row["TYPE"], row["SERVICE_EXP"], row["MONTH"], 
+                    row["HOTELID"], row["TYPE"], row["SERVICE_EXP"], row["MONTH"],
                     row["YEAR"], row["TOTAL_INCOME"], row["COST_PER_HOUR"], row["SUPID"]
                 )
             print(query)
@@ -696,8 +763,9 @@ def add_club():
             )
             print(finance_exp)
             cur.execute(finance_exp)
-        
+
         con.commit()
+
 
 def add_room():
     """
@@ -723,22 +791,24 @@ def add_room():
         if not hotel_exists(row["HOTELID"]):
             print("Error at add_room(): Hotel does not exist")
             return
-        
-        if room_hotel_exists(row["NUMBER"], row["HOTELID"]):	
-            print("Room already exists in hotel")	
+
+        if room_hotel_exists(row["NUMBER"], row["HOTELID"]):
+            print("Room already exists in hotel")
             return
 
-        query_room_type = "SELECT TYPE FROM ROOM_TYPE where RATE = %d and MAX_GUESTS = %d" % (row["RATE"], row["MAX_GUESTS"])
+        query_room_type = "SELECT TYPE FROM ROOM_TYPE where RATE = %d and MAX_GUESTS = %d" % (
+            row["RATE"], row["MAX_GUESTS"])
         cur.execute(query_room_type)
         room_type = cur.fetchone()
 
         if room_type is None:
-            room_type_insert = "INSERT INTO ROOM_TYPE (RATE, MAX_GUESTS) VALUES (%d, %d)" % (row["RATE"], row["MAX_GUESTS"])
+            room_type_insert = "INSERT INTO ROOM_TYPE (RATE, MAX_GUESTS) VALUES (%d, %d)" % (
+                row["RATE"], row["MAX_GUESTS"])
             cur.execute(room_type_insert)
 
             cur.execute(query_room_type)
             room_type = cur.fetchone()
-        
+
         row["TYPE"] = room_type["TYPE"]
         print("Final room type = ", row["TYPE"])
 
@@ -754,6 +824,7 @@ def add_room():
     except Exception as e:
         print("Error while inserting into ROOM: %s", e)
 
+
 def add_member():
     if True:
         row = {}
@@ -765,7 +836,8 @@ def add_member():
         row["DOB"] = input("Date of birth (YYYY-MM-DD): ")
         row["STAYS"] = int(input("Stays: "))
 
-        query = "INSERT INTO MEMBERS (TIER, FNAME, LNAME, EMAILID, DOB, STAYS) values (%d, '%s', '%s', '%s', \'%s\', %d)" % (row["TIER"], row["FNAME"], row["LNAME"], row["EMAILID"], row["DOB"], row["STAYS"])
+        query = "INSERT INTO MEMBERS (TIER, FNAME, LNAME, EMAILID, DOB, STAYS) values (%d, '%s', '%s', '%s', \'%s\', %d)" % (
+            row["TIER"], row["FNAME"], row["LNAME"], row["EMAILID"], row["DOB"], row["STAYS"])
         print("Query: ", query)
         cur.execute(query)
         con.commit()
@@ -823,7 +895,6 @@ def add_finances():
             print("Error while adding finances: No such hotel exists")
             return
 
-
         #  EXPENDITURE
         expenditure_query_sel = "SELECT TOTAL_EXP FROM EXPENDITURE WHERE ELEC_BILL = %d AND HOTEL_BILL = %d AND SERVICE_EXP = %d AND TOTAL_INCOME = %d AND EMP_EXP = %d" % (
             row["ELEC_BILL"],
@@ -837,24 +908,28 @@ def add_finances():
         total_exp = 0
         expenditure_query_res = cur.fetchone()
         if expenditure_query_res is None:
-            total_exp = row["ELEC_BILL"] + row["HOTEL_BILL"] + row["SERVICE_EXP"] + row["TOTAL_INCOME"] + row["EMP_EXP"]
-            expenditure_query_ins = "INSERT INTO EXPENDITURE VALUES (%d, %d, %d, %d, %d, %d)" % (row["ELEC_BILL"], row["HOTEL_BILL"], row["EMP_EXP"], row["SERVICE_EXP"], total_exp, row["TOTAL_INCOME"])
+            total_exp = row["ELEC_BILL"] + row["HOTEL_BILL"] + \
+                row["SERVICE_EXP"] + row["TOTAL_INCOME"] + row["EMP_EXP"]
+            expenditure_query_ins = "INSERT INTO EXPENDITURE VALUES (%d, %d, %d, %d, %d, %d)" % (
+                row["ELEC_BILL"], row["HOTEL_BILL"], row["EMP_EXP"], row["SERVICE_EXP"], total_exp, row["TOTAL_INCOME"])
             cur.execute(expenditure_query_ins)
 
             cur.execute(expenditure_query_sel)
             expenditure_query_res = cur.fetchone()
-        
+
         total_exp = expenditure_query_res["TOTAL_EXP"]
-        
+
         #   PROFIT
-        profit_query = "SELECT * FROM PROFIT WHERE TOTAL_EXP = %d AND TOTAL_INCOME = %d" % (total_exp, row["TOTAL_INCOME"])
+        profit_query = "SELECT * FROM PROFIT WHERE TOTAL_EXP = %d AND TOTAL_INCOME = %d" % (
+            total_exp, row["TOTAL_INCOME"])
         cur.execute(profit_query)
 
         if cur.fetchone() is None:
-            profit_query = "INSERT INTO PROFIT (TOTAL_EXP, TOTAL_INCOME, TOTAL_PROFIT) VALUES (%d, %d, %d)" % (total_exp, row["TOTAL_INCOME"], total_exp + row["TOTAL_INCOME"])
+            profit_query = "INSERT INTO PROFIT (TOTAL_EXP, TOTAL_INCOME, TOTAL_PROFIT) VALUES (%d, %d, %d)" % (
+                total_exp, row["TOTAL_INCOME"], total_exp + row["TOTAL_INCOME"])
             cur.execute(profit_query)
 
-        finances_query = "INSERT INTO FINANCES(HOTELID, MONTH, YEAR, ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME) values (%d, %d,%d,%d,%d,%d,%d,%d)" %(
+        finances_query = "INSERT INTO FINANCES(HOTELID, MONTH, YEAR, ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME) values (%d, %d,%d,%d,%d,%d,%d,%d)" % (
             row["HOTELID"],
             row["MONTH"],
             row["YEAR"],
@@ -880,16 +955,17 @@ def add_service_staff_room():
         row["ROOMNO"] = int(input("Room number: "))
         row["HOTELID"] = int(input("Hotel ID: "))
         row["SERVICE_STAFF_ID"] = int(input("Service staff ID: "))
-        
+
         if not room_hotel_exists(row["ROOMNO"], row["HOTELID"]):
             print("Error assigning service staff: Room does not exist")
             return
-        
-        if  not service_staff_exists(row["SERVICE_STAFF_ID"]):
+
+        if not service_staff_exists(row["SERVICE_STAFF_ID"]):
             print("Error assigning service staff: Service staff does not exist")
             return
-        
-        query = "INSERT INTO SERVICE_STAFF_ROOM (ROOMNO, HOTELID, SERVICE_STAFF_ID) VALUES (%d, %d, %d)" % (row["ROOMNO"], row["HOTELID"], row["SERVICE_STAFF_ID"])
+
+        query = "INSERT INTO SERVICE_STAFF_ROOM (ROOMNO, HOTELID, SERVICE_STAFF_ID) VALUES (%d, %d, %d)" % (
+            row["ROOMNO"], row["HOTELID"], row["SERVICE_STAFF_ID"])
         cur.execute(query)
         con.commit()
 
@@ -906,27 +982,30 @@ def remove_service_staff_room():
         row["ROOMNO"] = int(input("Room number: "))
         row["HOTELID"] = int(input("Hotel ID: "))
         row["SERVICE_STAFF_ID"] = int(input("Service staff ID: "))
-        
+
         if not room_hotel_exists(row["ROOMNO"], row["HOTELID"]):
             print("Error assigning service staff: Room does not exist")
             return
-        
-        if  not service_staff_exists(row["SERVICE_STAFF_ID"]):
+
+        if not service_staff_exists(row["SERVICE_STAFF_ID"]):
             print("Error assigning service staff: Service staff does not exist")
             return
-        
-        relation_exist_query = "SELECT * FROM SERVICE_STAFF_ROOM WHERE ROOMNO = %d AND HOTELID = %d AND SERVICE_STAFF_ID = %d" % (row["ROOMNO"], row["HOTELID"], row["SERVICE_STAFF_ID"])
+
+        relation_exist_query = "SELECT * FROM SERVICE_STAFF_ROOM WHERE ROOMNO = %d AND HOTELID = %d AND SERVICE_STAFF_ID = %d" % (
+            row["ROOMNO"], row["HOTELID"], row["SERVICE_STAFF_ID"])
         cur.execute(relation_exist_query)
         if cur.fetchone() is None:
             print("Service staff was not assigned to the room")
             return
-        query = "DELETE FROM SERVICE_STAFF_ROOM WHERE ROOMNO = %d AND HOTELID = %d AND SERVICE_STAFF_ID = %d" % (row["ROOMNO"], row["HOTELID"], row["SERVICE_STAFF_ID"])
+        query = "DELETE FROM SERVICE_STAFF_ROOM WHERE ROOMNO = %d AND HOTELID = %d AND SERVICE_STAFF_ID = %d" % (
+            row["ROOMNO"], row["HOTELID"], row["SERVICE_STAFF_ID"])
         cur.execute(query)
         con.commit()
 
         print("Successfully un-assigned")
     # except Exception as e:
     #    print(e)
+
 
 def finance_report():
     '''
@@ -936,40 +1015,42 @@ def finance_report():
         hotelid = int(input("Enter hotel id: "))
         month = int(input("Enter Month: "))
         year = int(input("Year: "))
-        if not finances_exists(hotelid,month,year):
+        if not finances_exists(hotelid, month, year):
             print("No such Finance entry has been made. \n")
             return
-        
+
         populate_exp_profits(hotelid, month, year)
 
         query = "SELECT * FROM FINANCES NATURAL JOIN EXPENDITURE NATURAL JOIN PROFIT WHERE \
                 FINANCES.HOTELID=%s AND \
                 FINANCES.MONTH=%s AND \
-                FINANCES.YEAR=%s "%(hotelid,month,year)
+                FINANCES.YEAR=%s " % (hotelid, month, year)
         cur.execute(query)
         finances = cur.fetchone()
         managerid_query = "SELECT MANAGERID , FNAME , LNAME FROM HOTEL JOIN EMPLOYEE WHERE \
                             HOTEL.ID=%s AND \
-                            EMPLOYEE.ID=HOTEL.MANAGERID"%(hotelid)
+                            EMPLOYEE.ID=HOTEL.MANAGERID" % (hotelid)
         cur.execute(managerid_query)
         manager_details = cur.fetchone()
         print("------------------------FINANCE REPORT-----------------------\n")
-        print("MONTH:                ",month)
-        print("YEAR:                 ",year)
-        print("HOTELID:              ",hotelid)
-        print("MANAGERID:            ",manager_details["MANAGERID"])
-        print("MANAGER NAME:         ",manager_details["FNAME"], " ", manager_details["LNAME"])
-        print("EMPLOYEE EXPENDITURE: ",finances["EMP_EXP"])
-        print("SERVICE EXPENDITURE:  ",finances["SERVICE_EXP"])
-        print("ELECTRICITY BILL:     ",finances["ELEC_BILL"])
-        print("HOTEL BILL:           ",finances["HOTEL_BILL"])
-        print("TOTAL EXPENDITURE:    ",finances["TOTAL_EXP"])
-        print("TOTAL INCOME:         ",finances["TOTAL_INCOME"])
-        print("TOTAL PROFIT:         ",finances["TOTAL_PROFIT"])
+        print("MONTH:                ", month)
+        print("YEAR:                 ", year)
+        print("HOTELID:              ", hotelid)
+        print("MANAGERID:            ", manager_details["MANAGERID"])
+        print("MANAGER NAME:         ",
+              manager_details["FNAME"], " ", manager_details["LNAME"])
+        print("EMPLOYEE EXPENDITURE: ", finances["EMP_EXP"])
+        print("SERVICE EXPENDITURE:  ", finances["SERVICE_EXP"])
+        print("ELECTRICITY BILL:     ", finances["ELEC_BILL"])
+        print("HOTEL BILL:           ", finances["HOTEL_BILL"])
+        print("TOTAL EXPENDITURE:    ", finances["TOTAL_EXP"])
+        print("TOTAL INCOME:         ", finances["TOTAL_INCOME"])
+        print("TOTAL PROFIT:         ", finances["TOTAL_PROFIT"])
         print("-------------------------------------------------------------\n")
     # except Exception as e:
     #     print("Failed to generate report \n")
     #     print(e)
+
 
 def add_guest():
     if True:
@@ -996,12 +1077,12 @@ def add_guest():
         if row["ISMEMBER"] and (not member_exists(row["MEMBERID"])):
             print("Error adding member guest: Member ID incorrect")
             return
-        
+
         # Check room empty
         if not is_room_empty(row["ROOMNO"], row["HOTELID"]):
             print("Error adding guest: Room is occupied")
             return
-        
+
         if (row["ISMEMBER"]):
             query = "INSERT INTO GUESTS (ROOMNO, HOTELID, IS_MEMBER, MEMBERID, CHECKIN, CHECKOUT, COST, CLUB_HOURS) VALUES (%d, %d, %d, %d, '%s', '%s', %d, %d)" % (
                 row["ROOMNO"],
@@ -1027,14 +1108,16 @@ def add_guest():
         cur.execute(query)
 
         # Set room status as occupied
-        update_rooms_status = "UPDATE ROOMS SET STATUS = 1 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])
+        update_rooms_status = "UPDATE ROOMS SET STATUS = 1 WHERE NUMBER = %d AND HOTELID = %d" % (
+            row["ROOMNO"], row["HOTELID"])
         cur.execute(update_rooms_status)
 
         if row["ISMEMBER"]:  # increment number of stays
-            member_query = "UPDATE MEMBERS SET STAYS = STAYS + 1 WHERE ID = %d" % (row["MEMBERID"])
+            member_query = "UPDATE MEMBERS SET STAYS = STAYS + 1 WHERE ID = %d" % (
+                row["MEMBERID"])
             cur.execute(member_query)
             print("Member stays updated")
-        
+
         con.commit()
 
         print("Guest checked in.")
@@ -1052,7 +1135,7 @@ def remove_guest():
         if not guest_exists(row["ROOMNO"], row["HOTELID"], row["CHECKIN"], row["CHECKOUT"]):
             print("Guest does not exist")
             return
-        
+
         clear_mr_entry = "DELETE FROM MASTER_RELATIONSHIP WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (
             row["ROOMNO"],
             row["HOTELID"],
@@ -1077,11 +1160,11 @@ def remove_guest():
         )
         cur.execute(query)
 
-        update_rooms_status = "UPDATE ROOMS SET STATUS = 0 WHERE NUMBER = %d AND HOTELID = %d" % (row["ROOMNO"], row["HOTELID"])
+        update_rooms_status = "UPDATE ROOMS SET STATUS = 0 WHERE NUMBER = %d AND HOTELID = %d" % (
+            row["ROOMNO"], row["HOTELID"])
         cur.execute(update_rooms_status)
 
         con.commit()
-
 
         print(update_rooms_status)
         print("Guest successfully checked out. Room emptied.")
@@ -1102,7 +1185,7 @@ def add_guest_club():
     | YEAR            | int          | NO   | PRI | NULL    |       |
     | CLUB_HOURS_USED | int          | YES  |     | NULL    |       |
     +-----------------+--------------+------+-----+---------+-------+
-    8 rows in set 
+    8 rows in set
     """
     if True:
         row = {}
@@ -1116,28 +1199,34 @@ def add_guest_club():
         row["CLUB_HOURS_USED"] = int(input("Hours registered for: "))
         # row["MONTH"] = int(input("Month of joining: "))
         # row["YEAR"] = int(input("Year: "))
-        row["YEAR"], row["MONTH"] = int(row["CHECKOUT"].split("-")[0]), int(row["CHECKOUT"].split("-")[1])
+        row["YEAR"], row["MONTH"] = int(row["CHECKOUT"].split(
+            "-")[0]), int(row["CHECKOUT"].split("-")[1])
 
         if not guest_exists(row["ROOMNO"], row["HOTELID"], row["CHECKIN"], row["CHECKOUT"]):
             print("Invalid guest information")
             return
 
-        club_type_query = "SELECT * FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s'" % (row["HOTELID"], row["CLUB_TYPE"])
+        club_type_query = "SELECT * FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s'" % (
+            row["HOTELID"], row["CLUB_TYPE"])
         cur.execute(club_type_query)
 
         if cur.fetchone() is None:
             print("Such a club does not exist in the hotel")
             return
         else:
-            club_exist_q = "SELECT * FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s' AND MONTH = %d AND YEAR = %d" % (row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"])
+            club_exist_q = "SELECT * FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s' AND MONTH = %d AND YEAR = %d" % (
+                row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"])
             cur.execute(club_exist_q)
             if cur.fetchone() is None:
                 print("Club has not been updated.")
                 supid = int(input("Enter supervisor ID for this month: "))
                 while not supervisor_exists(supid):
-                    supid = int(input("Supervisor does not exist. Enter valid ID: "))
-                cost_per_hour = int(input("Enter cost per hour for this month: "))
-                service_exp = int(input("Enter projected service expenditure: "))
+                    supid = int(
+                        input("Supervisor does not exist. Enter valid ID: "))
+                cost_per_hour = int(
+                    input("Enter cost per hour for this month: "))
+                service_exp = int(
+                    input("Enter projected service expenditure: "))
 
                 club_type_query = "INSERT INTO CLUBS (HOTELID, TYPE, MONTH, YEAR, SUPID, COST_PER_HOUR, SERVICE_EXP) VALUES (%d, '%s', %d, %d, %d, %d, %d)" % (
                     row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"], supid, cost_per_hour, service_exp
@@ -1148,7 +1237,7 @@ def add_guest_club():
                     row["SERVICE_EXP"], row["TOTAL_INCOME"], row["HOTELID"], row["MONTH"], row["YEAR"]
                 )
                 cur.execute(finance_exp)
-        
+
         create_finances_if_not_exist(row["HOTELID"], row["MONTH"], row["YEAR"])
 
         mr_query = "SELECT * FROM MASTER_RELATIONSHIP WHERE \
@@ -1159,7 +1248,7 @@ def add_guest_club():
                     CLUB_TYPE = '%s' AND \
                     MONTH = '%d' AND \
                     YEAR = %d" % (
-                        row["ROOMNO"] ,
+                        row["ROOMNO"],
                         row["HOTELID"],
                         row["CHECKIN"],
                         row["CHECKOUT"],
@@ -1190,21 +1279,21 @@ def add_guest_club():
                         CLUB_TYPE = '%s' AND \
                         MONTH = '%d' AND \
                         YEAR = %d" % (
-                            row["CLUB_HOURS_USED"], row["ROOMNO"] , row["HOTELID"],
+                            row["CLUB_HOURS_USED"], row["ROOMNO"], row["HOTELID"],
                             row["CHECKIN"], row["CHECKOUT"], row["CLUB_TYPE"],
                             row["MONTH"], row["YEAR"]
                         )
             cur.execute(mr_query)
-        
+
         club_rate_query = "SELECT COST_PER_HOUR FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s' AND MONTH = %d AND YEAR = %d" % (
             row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"]
         )
         cur.execute(club_rate_query)
         club_rate = cur.fetchone()["COST_PER_HOUR"]
 
-        print("Club registered for month = %d and year = %d" % (row["MONTH"], row["YEAR"]))
+        print("Club registered for month = %d and year = %d" %
+              (row["MONTH"], row["YEAR"]))
         print("Cost per hour = ", club_rate)
-        
 
         club_income_update = "UPDATE CLUBS SET TOTAL_INCOME = TOTAL_INCOME + %d \
             WHERE HOTELID = %d AND TYPE = '%s' AND MONTH = %d AND YEAR = %d" % (
@@ -1214,7 +1303,8 @@ def add_guest_club():
         cur.execute(club_income_update)
 
         finance_exp = "UPDATE FINANCES SET TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
-            row["CLUB_HOURS_USED"] * club_rate, row["HOTELID"], row["MONTH"], row["YEAR"]
+            row["CLUB_HOURS_USED"] *
+                club_rate, row["HOTELID"], row["MONTH"], row["YEAR"]
         )
         cur.execute(finance_exp)
 
@@ -1222,7 +1312,7 @@ def add_guest_club():
 
         print("Guest successfully registered")
 
-        
+
 def dispatch():
     """
     Function that maps helper functions to option entered
@@ -1237,24 +1327,25 @@ def dispatch():
     ch = input("Enter choice: ")
     if(ch == "a"):
         hireAnEmployee()
-   
+
     elif(ch == "b"):
         fireAnEmployee()
 
     elif (ch == "c"):
         add_service_staff_room()
-    
+
     elif (ch == "d"):
         remove_service_staff_room()
 
     elif (ch == "e"):
         modify_employee()
-    
+
     elif (ch == "f"):
         modify_service_staff_for_one_room()
 
     else:
         print("Error: Invalid Option")
+
 
 def cost_guest():
     '''
@@ -1266,29 +1357,29 @@ def cost_guest():
         member_discount = 0
         date_format = "%Y-%m-%d"
         member_discount_dict = {
-            1 : 100,
-            2 : 200,
-            3 : 300,
-            4 : 400,
-            5 : 500
+            1: 100,
+            2: 200,
+            3: 300,
+            4: 400,
+            5: 500
         }
         member_stays_dict = {
-            10 : 100,
-            50 : 200,
-            100 : 500
+            10: 100,
+            50: 200,
+            100: 500
         }
 
         roomno = int(input("Enter room number: "))
         hotelid = int(input("Enter HotelID: "))
         checkin = input("Enter Checkin: ")
         checkout = input("Enter Checkout: ")
-        if not room_hotel_exists(roomno,hotelid):
+        if not room_hotel_exists(roomno, hotelid):
             print("Room dosen't exist in the hotel\n")
             return
-        if is_room_empty(roomno,hotelid):
+        if is_room_empty(roomno, hotelid):
             print("Room is empty\n")
             return
-        if not guest_exists(roomno,hotelid,checkin,checkout):
+        if not guest_exists(roomno, hotelid, checkin, checkout):
             print("No such guest with the matching details exists \n")
             return
 
@@ -1296,7 +1387,7 @@ def cost_guest():
                 ROOMNO=%s AND \
                 HOTELID=%s AND \
                 CHECKIN='%s' AND \
-                CHECKOUT='%s' "%(roomno , hotelid , checkin , checkout)
+                CHECKOUT='%s' " % (roomno, hotelid, checkin, checkout)
         cur.execute(query)
         results = cur.fetchall()
 
@@ -1305,17 +1396,19 @@ def cost_guest():
                     HOTELID=%s AND \
                     TYPE='%s' AND \
                     MONTH=%s AND \
-                    YEAR=%s"%(hotelid,result["CLUB_TYPE"],result["MONTH"],result["YEAR"])
+                    YEAR=%s" % (hotelid, result["CLUB_TYPE"], result["MONTH"], result["YEAR"])
             cur.execute(query)
             result1 = cur.fetchone()
-            club_cost = (club_cost + result1["COST_PER_HOUR"] * result["CLUB_HOURS_USED"])
-        
+            club_cost = (
+                club_cost + result1["COST_PER_HOUR"] * result["CLUB_HOURS_USED"])
+
         query = "SELECT TYPE FROM ROOMS WHERE \
                 NUMBER=%s AND \
-                HOTELID=%s "%(roomno , hotelid)
+                HOTELID=%s " % (roomno, hotelid)
         cur.execute(query)
         type_result = cur.fetchone()
-        type_query = "SELECT RATE FROM ROOM_TYPE WHERE TYPE=%s"%(type_result["TYPE"])
+        type_query = "SELECT RATE FROM ROOM_TYPE WHERE TYPE=%s" % (
+            type_result["TYPE"])
         cur.execute(type_query)
         type_cost = cur.fetchone()
         start_date = datetime.strptime(checkin, date_format)
@@ -1328,14 +1421,16 @@ def cost_guest():
                             ROOMNO=%s AND \
                             HOTELID=%s AND \
                             CHECKIN='%s' AND \
-                            CHECKOUT='%s' "%(roomno,hotelid,checkin,checkout)
+                            CHECKOUT='%s' " % (roomno, hotelid, checkin, checkout)
         cur.execute(member_check_query)
         member_check = cur.fetchone()
-        if not (member_check["MEMBERID"] is None) :
-            query = "SELECT TIER , STAYS FROM MEMBERS WHERE ID=%s"%(member_check["MEMBERID"])
+        if not (member_check["MEMBERID"] is None):
+            query = "SELECT TIER , STAYS FROM MEMBERS WHERE ID=%s" % (
+                member_check["MEMBERID"])
             cur.execute(query)
             member_stats = cur.fetchone()
-            member_discount = member_discount + member_discount_dict[member_stats["TIER"]]
+            member_discount = member_discount + \
+                member_discount_dict[member_stats["TIER"]]
             if member_stats["STAYS"] >= 100:
                 member_discount = member_discount + member_stays_dict[100]
             elif member_stats["STAYS"] >= 50:
@@ -1343,9 +1438,9 @@ def cost_guest():
             elif member_stats["STAYS"] >= 10:
                 member_discount = member_discount + member_stays_dict[10]
 
-        print("Your total stay cost is:  " , stay_cost)
-        print("Your total club cost is: " , club_cost)
-        print("Discount :" , member_discount)
+        print("Your total stay cost is:  ", stay_cost)
+        print("Your total club cost is: ", club_cost)
+        print("Discount :", member_discount)
         grand_total = stay_cost + club_cost - member_discount
         print("Your grand total is: ", grand_total)
 
@@ -1364,25 +1459,25 @@ def cost_guest_generation(roomno, hotelid, checkin, checkout):
         member_discount = 0
         date_format = "%Y-%m-%d"
         member_discount_dict = {
-            1 : 100,
-            2 : 200,
-            3 : 300,
-            4 : 400,
-            5 : 500
+            1: 100,
+            2: 200,
+            3: 300,
+            4: 400,
+            5: 500
         }
         member_stays_dict = {
-            10 : 100,
-            50 : 200,
-            100 : 500
+            10: 100,
+            50: 200,
+            100: 500
         }
 
-        if not room_hotel_exists(roomno,hotelid):
+        if not room_hotel_exists(roomno, hotelid):
             print("Room dosen't exist in the hotel\n")
             return
-        if is_room_empty(roomno,hotelid):
+        if is_room_empty(roomno, hotelid):
             print("Room is empty\n")
             return
-        if not guest_exists(roomno,hotelid,checkin,checkout):
+        if not guest_exists(roomno, hotelid, checkin, checkout):
             print("No such guest with the matching details exists \n")
             return
 
@@ -1390,7 +1485,7 @@ def cost_guest_generation(roomno, hotelid, checkin, checkout):
                 ROOMNO=%s AND \
                 HOTELID=%s AND \
                 CHECKIN='%s' AND \
-                CHECKOUT='%s' "%(roomno , hotelid , checkin , checkout)
+                CHECKOUT='%s' " % (roomno, hotelid, checkin, checkout)
         cur.execute(query)
         results = cur.fetchall()
 
@@ -1399,17 +1494,19 @@ def cost_guest_generation(roomno, hotelid, checkin, checkout):
                     HOTELID=%s AND \
                     TYPE='%s' AND \
                     MONTH=%s AND \
-                    YEAR=%s"%(hotelid,result["CLUB_TYPE"],result["MONTH"],result["YEAR"])
+                    YEAR=%s" % (hotelid, result["CLUB_TYPE"], result["MONTH"], result["YEAR"])
             cur.execute(query)
             result1 = cur.fetchone()
-            club_cost = (club_cost + result1["COST_PER_HOUR"] * result["CLUB_HOURS_USED"])
-        
+            club_cost = (
+                club_cost + result1["COST_PER_HOUR"] * result["CLUB_HOURS_USED"])
+
         query = "SELECT TYPE FROM ROOMS WHERE \
                 NUMBER=%s AND \
-                HOTELID=%s "%(roomno , hotelid)
+                HOTELID=%s " % (roomno, hotelid)
         cur.execute(query)
         type_result = cur.fetchone()
-        type_query = "SELECT RATE FROM ROOM_TYPE WHERE TYPE=%s"%(type_result["TYPE"])
+        type_query = "SELECT RATE FROM ROOM_TYPE WHERE TYPE=%s" % (
+            type_result["TYPE"])
         cur.execute(type_query)
         type_cost = cur.fetchone()
         start_date = datetime.strptime(checkin, date_format)
@@ -1422,14 +1519,16 @@ def cost_guest_generation(roomno, hotelid, checkin, checkout):
                             ROOMNO=%s AND \
                             HOTELID=%s AND \
                             CHECKIN='%s' AND \
-                            CHECKOUT='%s' "%(roomno,hotelid,checkin,checkout)
+                            CHECKOUT='%s' " % (roomno, hotelid, checkin, checkout)
         cur.execute(member_check_query)
         member_check = cur.fetchone()
-        if not (member_check["MEMBERID"] is None) :
-            query = "SELECT TIER , STAYS FROM MEMBERS WHERE ID=%s"%(member_check["MEMBERID"])
+        if not (member_check["MEMBERID"] is None):
+            query = "SELECT TIER , STAYS FROM MEMBERS WHERE ID=%s" % (
+                member_check["MEMBERID"])
             cur.execute(query)
             member_stats = cur.fetchone()
-            member_discount = member_discount + member_discount_dict[member_stats["TIER"]]
+            member_discount = member_discount + \
+                member_discount_dict[member_stats["TIER"]]
             if member_stats["STAYS"] >= 100:
                 member_discount = member_discount + member_stays_dict[100]
             elif member_stats["STAYS"] >= 50:
@@ -1437,9 +1536,9 @@ def cost_guest_generation(roomno, hotelid, checkin, checkout):
             elif member_stats["STAYS"] >= 10:
                 member_discount = member_discount + member_stays_dict[10]
 
-        print("Your total stay cost is:  " , stay_cost)
-        print("Your total club cost is: " , club_cost)
-        print("Discount :" , member_discount)
+        print("Your total stay cost is:  ", stay_cost)
+        print("Your total club cost is: ", club_cost)
+        print("Discount :", member_discount)
         grand_total = stay_cost + club_cost - member_discount
         print("Your grand total is: ", grand_total)
 
@@ -1461,53 +1560,57 @@ def cost_guest_generation(roomno, hotelid, checkin, checkout):
         print("Couldn't generate bill \n")
         print(e)
 
-def view_employees(hId):	
-    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s)" % (	
-        hId)	
-    # print(query)	
-    cur.execute(query)	
-    rows = cur.fetchall	
-    for row in cur:	
-        print(row)	
-        print(row["ID"], row["FNAME"], row["LNAME"])	
-    print("\n")	
 
-
-def view_fired_employees(hId):	
-    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s) and status != 'employed" % (	
-        hId)	
-    cur.execute(query)	
-    for row in cur:	
-        # print(row)	
-        print(row["ID"], row["FNAME"], row["LNAME"])	
-    print("\n")	
-
-def view_service_staff(hId):	
-    query = "select * from employee where id in (select id from service_staff) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (	
-        hId)	
-    cur.execute(query)	
-    for row in cur:	
-        # print(row)	
-        print(row["ID"], row["FNAME"], row["LNAME"])	
+def view_employees(hId):
+    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s)" % (
+        hId)
+    # print(query)
+    cur.execute(query)
+    rows = cur.fetchall
+    for row in cur:
+        print(row)
+        print(row["ID"], row["FNAME"], row["LNAME"])
     print("\n")
-        
+
+
+def view_fired_employees(hId):
+    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s) and status != 'employed" % (
+        hId)
+    cur.execute(query)
+    for row in cur:
+        # print(row)
+        print(row["ID"], row["FNAME"], row["LNAME"])
+    print("\n")
+
+
+def view_service_staff(hId):
+    query = "select * from employee where id in (select id from service_staff) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
+        hId)
+    cur.execute(query)
+    for row in cur:
+        # print(row)
+        print(row["ID"], row["FNAME"], row["LNAME"])
+    print("\n")
+
 
 def view_manager(hId):
     query = "select * from employee where id in (select id from MANAGER) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
         hId)
-    cur.execute(query)	
-    for row in cur:	
-        # print(row)	
-        print(row["ID"], row["FNAME"], row["LNAME"])	
+    cur.execute(query)
+    for row in cur:
+        # print(row)
+        print(row["ID"], row["FNAME"], row["LNAME"])
     print("\n")
+
 
 def view_guests(hId):
     query = "select * from guests where hotelid = %s" % (hId)
     cur.execute(query)
     print("ROOMNO", "\t", "CHECKIN", "\t", "CHECKOUT")
-    for row in cur :
+    for row in cur:
         print(row["ROOMNO"], row["CHECKIN"], row["CHECKOUT"])
     print("\n")
+
 
 def view_members(hId):
     query = "select * from members"
@@ -1517,13 +1620,16 @@ def view_members(hId):
         print(row["ID"], row["FNAME"], row["LNAME"], row["EMAIL"])
     print("\n")
 
+
 def view_member_guests(hId):
-    query = "select * from members where ID in (selct MEMBERID from guests where hotelid = %s and ISMEMBER = 1)" % (hId)
+    query = "select * from members where ID in (selct MEMBERID from guests where hotelid = %s and ISMEMBER = 1)" % (
+        hId)
     cur.execute(query)
     print("ROOMNO | MEMBERID | CHECKIN | CHECKOUT")
     for row in cur:
         print(row["ROOMNO"], row["MEMBERID"], row["CHECKIN"], row["CHECKOUT"])
     print("\n")
+
 
 def view_member_of_tier(hId):
     tier = int(input("enter tier: "))
@@ -1535,6 +1641,7 @@ def view_member_of_tier(hId):
         print(row["ID"], row["FNAME"], row["LNAME"], row["EMAIL"])
     print("\n")
 
+
 def view_all_clubs(hId):
     query = "select * from clubs where hotelid = %s" % (hId)
     cur.execute(query)
@@ -1544,13 +1651,46 @@ def view_all_clubs(hId):
         print(row["TYPE"])
     print("\n")
 
-def view_clubs_finance_type(hId:
+
+def view_clubs_finance_type(hId):
     cType = input("Please specify club type: "))
 
-    query = "select * from clubs where hotelid = %s and type = %s" % (hId, cType)
+    query="select * from clubs where hotelid = %s and type = %s" % (hId, cType)
     cur.execute(query)
     for row in cur:
-        print(row["TOTAL_INCOME"], row["SERVICE_EXP"], row["MONTH"], row["YEAR"])
+        print(row["TOTAL_INCOME"], row["SERVICE_EXP"],
+              row["MONTH"], row["YEAR"])
+    print("\n")
+
+def view_all_rooms(hId):
+     query="select * from rooms where hotelid = %s" % (hId)
+     cur.execute(query)
+     for row in cur:
+        print(row["NUMBER"], row["STATUS"])
+    print("\n")
+
+def view_all_occupied_rooms(hId):
+    query="select * from rooms where hotelid = %s and status = 1" % (hId)
+    cur.execute(query)
+    for row in cur:
+        print(row["NUMBER"])
+    print("\n")
+
+def view_all_unoccupied_rooms(hId):
+    query="select * from rooms where hotelid = %s and status = 0" % (hId)
+    cur.execute(query)
+    for row in cur:
+        print(row["NUMBER"])
+    print("\n")
+
+def view_room_of_cost(hId):
+    lb=int(input("enter lower bound: "))
+    ub=int(input("enter upper bound: "))
+    query="select * from rooms, room_type where rooms.type = room_type.type and hotelid = %s and %s >= rate and %s <= rate" % (
+        hId, ub, lb)
+    cur.execute(query)
+    for row in cur:
+        print(row["NUMBER"])
     print("\n")
 
 def handle_views():
@@ -1565,16 +1705,16 @@ def handle_views():
     print("6. LATEST MEMBERS")
     print("7. FINANCIAL REPORT")
 
-    choice = int(input("SELECT> "))
+    choice=int(input("SELECT> "))
 
     if (choice == 1):
-        hId = int(input("Please specify hotelID: "))
+        hId=int(input("Please specify hotelID: "))
         print("1.  Employees")
         print("2. Fired employees")
         print("3.  Service staff")
         print("4.  Supervisors")
         print("5.  Managers")
-        chch = int(input("SELECT> "))
+        chch=int(input("SELECT> "))
         if (chch == 1):
             view_employees(hId)
         elif (chch == 2):
@@ -1587,14 +1727,14 @@ def handle_views():
             view_manager(hId)
         else:
             print("invalid")
-            
+
     if (choice == 2):
-        hId = int(input ("Please specify hotelID: "))
+        hId=int(input("Please specify hotelID: "))
         print("1.  Guests")
         print("2.  Members")
         print("3.  Member guests")
         print("4.  Members of a tier")
-        chch = int(input("SELECT> "))
+        chch=int(input("SELECT> "))
         if (chch == 1):
             view_guests(hId)
         elif (chch == 2):
@@ -1605,13 +1745,13 @@ def handle_views():
             view_member_of_tier(hId)
         else:
             print("invlalid")
-            
-    
+
+
     if (choice == 4):
-        hId = int(input("Please specify hotelID: "))
+        hId=int(input("Please specify hotelID: "))
         print("1. All Clubs")
         print("1. Finance info of clubs of type")
-        chch = int(input("SELECT> "))
+        chch=int(input("SELECT> "))
         if (chch == 1):
             view_all_clubs(hId)
         if (chch == 2):
@@ -1620,36 +1760,50 @@ def handle_views():
             print("invlaid")
 
     if (choice == 5):
+        hId=int(input("Please specify hotelID: "))
         print("1. Rooms of a hotel")
         print("2. Unoccupied rooms of a hotel")
         print("3. Rooms in a hotel currently occupied")
         print("4. Rooms of a certain cost interval")
+        chch=int(input("SELECT> "))
+        if (chch == 1):
+            view_all_rooms()
+        elif (chch == 2):
+            view_all_unoccupied_rooms()
+        elif (chch == 3):
+            view_all_occupied_rooms()
+        elif (chch == 4):
+            view_room_of_cost()
+        else:
+            print("invlalid")
+
+
 
 # Global
 while(1):
-    tmp = sp.call('clear', shell=True)
-    
+    tmp=sp.call('clear', shell = True)
+
     # Can be skipped if you want to hard core username and password
-    username = input("Username: ")
-    password = input("Password: ")
+    username=input("Username: ")
+    password=input("Password: ")
 
     if True:  # try
         # Set db name accordingly which have been create by you
-        # Set host to the server's address if you don't want to use local SQLl server 
-        con = pymysql.connect(host='localhost',
-                              user=username,
+        # Set host to the server's address if you don't want to use local SQLl server
+        con=pymysql.connect(host = 'localhost',
+                              user = username,
                               port = 5005,
-                              password=password,
-                              db='HCDBMS',
-                              cursorclass=pymysql.cursors.DictCursor)
-        tmp = sp.call('clear', shell=True)
+                              password = password,
+                              db = 'HCDBMS',
+                              cursorclass = pymysql.cursors.DictCursor)
+        tmp=sp.call('clear', shell = True)
 
         if(con.open):
             print("Connected")
         else:
             print("Failed to connect")
 
-        tmp = input("Enter any key to CONTINUE>")
+        tmp=input("Enter any key to CONTINUE>")
 
         with con.cursor() as cur:
             while(1):
@@ -1667,8 +1821,8 @@ while(1):
                 print("10. Generate Guest Bill")
                 print("11. Add a Member Guest")
                 print("20. Logout")
-                ch = int(input("Enter choice> "))
-                tmp = sp.call('clear', shell=True)
+                ch=int(input("Enter choice> "))
+                tmp=sp.call('clear', shell = True)
                 if ch == 0:
                     handle_views()
                 elif ch == 1:
@@ -1688,14 +1842,14 @@ while(1):
                 elif (ch == 8):
                     add_finances()
                 elif (ch == 4):
-                    add_guest()	
-                elif (ch == 5):	
+                    add_guest()
+                elif (ch == 5):
                     remove_guest()
                 elif (ch == 10):
                     cost_guest()
                 elif ch == 20:
                     break
-                tmp = input("Enter any key to CONTINUE>")
+                tmp=input("Enter any key to CONTINUE>")
 
     # except:
     #     tmp = sp.call('clear', shell=True)
