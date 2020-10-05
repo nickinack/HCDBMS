@@ -585,22 +585,7 @@ Helper functions end
 '''
 
 def add_club():
-    """
-    Add a new club to a hotel
-    """
-    """
-    `HOTELID` int NOT NULL,
-    `TYPE` varchar(255) NOT NULL,
-    `SERVICE_EXP` int NOT NULL,
-    `MONTH` int NOT NULL,
-    `YEAR` int NOT NULL,
-    `TOTAL_INCOME` int NOT NULL,
-    `COST_PER_HOUR` int NOT NULL,
-    `SUPID` int NOT NULL,
-    PRIMARY KEY (`HOTELID`,`TYPE`,`MONTH`,`YEAR`),
-    KEY `SUPID` (`SUPID`),
-    CONSTRAINT `CLUBS_ibfk_1` FOREIGN KEY (`SUPID`) REFERENCES `SUPERVISOR` (`ID`)
-    """
+    
     if True:  # try-catch exempted for testing purposes
         # Takes emplyee details as input
         row = {}
@@ -1253,7 +1238,6 @@ def view_fired_employees(hId):
     query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s) and status != 'employed" % (	
         hId)	
     cur.execute(query)	
-    rows = cur.fetchall	
     for row in cur:	
         # print(row)	
         print(row["ID"], row["FNAME"], row["LNAME"])	
@@ -1263,13 +1247,54 @@ def view_service_staff(hId):
     query = "select * from employee where id in (select id from service_staff) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (	
         hId)	
     cur.execute(query)	
-    rows = cur.fetchall	
     for row in cur:	
         # print(row)	
         print(row["ID"], row["FNAME"], row["LNAME"])	
     print("\n")
         
-    
+
+def view_manager(hId):
+     query = "select * from employee where id in (select id from MANAGER) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
+        hId)
+    cur.execute(query)	
+    for row in cur:	
+        # print(row)	
+        print(row["ID"], row["FNAME"], row["LNAME"])	
+    print("\n")
+
+def view_guests(hId):
+    query = "select * from guests where hotelid = %s" % (hId)
+    cur.execute(query)
+    print("ROOMNO", "\t", "CHECKIN", "\t", "CHECKOUT")
+    for row in cur :
+        print(row["ROOMNO"], row["CHECKIN"], row["CHECKOUT"])
+    print("\n")
+
+def view_members(hId):
+    query = "select * from members"
+    cur.execute(query)
+    print("ID\tFNAME\tLNAME\tEMAIL")
+    for row in cur:
+        print(row["ID"], row["FNAME"], row["LNAME"], row["EMAIL"])
+    print("\n")
+
+def view_member_guests(hId):
+    query = "select * from members where ID in (selct MEMBERID from guests where hotelid = %s and ISMEMBER = 1)" % (hId)
+    cur.execute(query)
+    print("ROOMNO | MEMBERID | CHECKIN | CHECKOUT")
+    for row in cur:
+        print(row["ROOMNO"], row["MEMBERID"], row["CHECKIN"], row["CHECKOUT"])
+    print("\n")
+
+def view_member_of_tier(hId):
+    tier = int(input("enter tier: "))
+    query = "select * from members where tier = %s" % (tier)
+
+    print("ID\tFNAME\tLNAME\tEMAIL")
+    for row in cur:
+        print(row["ID"], row["FNAME"], row["LNAME"], row["EMAIL"])
+    print("\n")
+
 def handle_views():
     print("Select from the following to retrieve information: ")
     print("Choose a VIEW option\n\n")
@@ -1283,7 +1308,6 @@ def handle_views():
     print("19. FINANCIAL REPORT")
 
     choice = int(input("SELECT> "))
-    query = ""
 
     if (choice == 1):
         hId = int(input("Please specify hotelID: "))
@@ -1307,11 +1331,23 @@ def handle_views():
             print("invalid")
             
     if (choice == 2):
+        hId = int(input ("Please specify hotelID: "))
         print("1.  Guests")
-        print("2.  Guests in a hotel")
-        print("3.  Members")
-        print("4.  Member guests")
-        print("5.  Members of a tier")
+        print("2.  Members")
+        print("3.  Member guests")
+        print("4.  Members of a tier")
+        chch = int(input("SELECT> "))
+        if (chch == 1):
+            view_guests(hId)
+        elif (chch == 2):
+            view_members()
+        elif(chch == 3):
+            view_member_guests(hId)
+        elif (chch == 4):
+            view_member_of_tier(hId)
+        else:
+            print("invlalid")
+            
     
     if (choice == 4):
         print("1. All clubs")
