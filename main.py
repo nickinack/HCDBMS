@@ -102,6 +102,17 @@ def hireAnEmployee(hotelid_default=None):
         if hotel_exists(hotelid):
             belongs_to(hotelid,id)
         
+        year, month = int(row["JOINDATE"]).split('-')[0], int(row["JOINDATE"].split('-'))[1]
+
+        create_finances_if_not_exist(hotelid, month, year)
+
+        finance_exp_update = "UPDATE FINANCES SET EMP_EXP = EMP_EXP + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+            row["SALARY"], hotelid, month, year
+        )
+        cur.execute(finance_exp_update)
+        con.commit()
+
+
     except Exception as e:
         con.rollback()
         print("Failed to insert into database")
@@ -499,6 +510,43 @@ def service_staff_exists(id):
     cur.execute(query)
     return cur.fetchone() is not None
 
+def populate_exp_profits(hotelid, month, year):
+    query = "SELECT ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME FROM FINANCES \
+        WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+            hotelid, month, year
+        )
+    cur.execute(query)
+    exp_res = cur.fetchone()
+
+    total_exp = exp_res["ELEC_BILL"] + exp_res["HOTEL_BILL"] + exp_res["SERVICE_EXP"] + exp_res["EMP_EXP"]
+
+    query = "SELECT TOTAL_EXP FROM EXPENDITURE WHERE ELEC_BILL = %d AND HOTEL_BILL = %d  AND EMP_EXP = %d \
+        AND SERVICE_EXP = %d AND TOTAL_INCOME = %d" % (
+            exp_res["ELEC_BILL"], exp_res["HOTEL_BILL"], exp_res["EMP_EXP"],
+            exp_res["SERVICE_EXP"], exp_res["TOTAL_INCOME"]
+        )
+    cur.execute(query)
+
+    if cur.fetchone() is None:
+        query = "INSERT INTO EXPENDITURE (ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME, TOTAL_EXP) \
+            VALUES (%d, %d, %d, %d, %d, %d)" % (
+                exp_res["ELEC_BILL"], exp_res["HOTEL_BILL"], exp_res["EMP_EXP"],
+                exp_res["SERVICE_EXP"], exp_res["TOTAL_INCOME"], total_exp
+            )
+        cur.execute(query)
+    
+    query = "SELECT * FROM PROFIT WHERE TOTAL_EXP = %d AND TOTAL_INCOME = %d" % (
+        total_exp, exp_res["TOTAL_INCOME"]
+    )
+    cur.execute(query)
+
+    if cur.fetchone() is None:
+        query = "INSERT INTO PROFIT (TOTAL_EXP, TOTAL_INCOME, TOTAL_PROFIT) VALUES (%d, %d, %d)" % (
+            total_exp, exp_res["TOTAL_INCOME"], exp_res["TOTAL_INCOME"] - total_exp
+        )
+        cur.execute(query)
+
+
 def hotel_exists(id):
     hotel_query = "SELECT ID FROM HOTEL WHERE ID = %d" % (id)
     cur.execute(hotel_query)
@@ -541,7 +589,11 @@ def manages_hotel(id):
 
 def create_finances_if_not_exist(hotelid, month, year):
     if not finances_exists(hotelid, month, year):
-        query = "INSERT INTO FINANCES (HOTELID, MONTH, YEAR) VALUES (%d, %d, %d)" % (hotelid, month, year)
+        print("Finances have not been updated.")
+        elec_bill = int(input("Electricity bill: "))
+        hotel_bill = int(input("Hotel bill "))
+
+        query = "INSERT INTO FINANCES (HOTELID, MONTH, YEAR, elec_bill, hotel_bill) VALUES (%d, %d, %d, %d, %d)" % (hotelid, month, year, elec_bill, hotel_bill)
         cur.execute(query)
         print("Inserting into finances")
         con.commit() 
@@ -603,17 +655,48 @@ def add_club():
             print("Error at add_club(): Hotel does not exist")
             return
         
-        supid_query = "SELECT ID FROM SUPERVISOR WHERE ID = %d" % (row["SUPID"])
-        cur.execute(supid_query)
-        if cur.fetchone() is None:
-            print("Error at add_club(): No supervisor found")
-            return
+        while not supervisor_exists(row["SUPID"]):
+            row["SUPID"] = int(input("Incorrect supervisor ID: "))
 
-        query = "INSERT INTO CLUBS(HOTELID,  TYPE, SERVICE_EXP, MONTH, YEAR, TOTAL_INCOME, COST_PER_HOUR, SUPID) VALUES('%d', '%s', '%d', '%d', '%d', '%d', '%d', %d)" % (
-            row["HOTELID"], row["TYPE"], row["SERVICE_EXP"], row["MONTH"], row["YEAR"], row["TOTAL_INCOME"], row["COST_PER_HOUR"], row["SUPID"])
+        club_query = "SELECT * FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s' AND MONTH = %d AND YEAR = %d" % (
+            row["HOTELID"], row["TYPE"], row["MONTH"], row["YEAR"]
+        )
+        cur.execute(club_query)
+        clubs_res = cur.fetchone()
 
-        print(query)
-        cur.execute(query)
+        create_finances_if_not_exist(row["HOTELID"], row["MONTH"], row["YEAR"])
+        
+        if clubs_res is not None:
+            ch = input("Overriding existing club information for the month, continue? (y/n) ")
+            if ch != 'y':
+                print("Aborting.")
+                return
+            query = "UPDATE CLUBS SET SUPID = %d, SERVICE_EXP = %d, COST_PER_HOUR = %d, TOTAL_INCOME = %d\
+                WHERE TYPE = '%s' AND HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+                    row["SUPID"], row["SERVICE_EXP"], row["COST_PER_HOUR"], row["TOTAL_INCOME"],
+                    row["TYPE"], row["HOTELID"], row["MONTH"], row["YEAR"]
+                )
+            cur.execute(query)
+            finance_exp = "UPDATE FINANCES SET SERVICE_EXP = SERVICE_EXP + %d, TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+                row["SERVICE_EXP"], row["TOTAL_INCOME"], row["HOTELID"], row["MONTH"], row["YEAR"]
+            )
+            print(finance_exp)
+            cur.execute(finance_exp)
+        else:
+            query = "INSERT INTO CLUBS(HOTELID,  TYPE, SERVICE_EXP, MONTH, YEAR, TOTAL_INCOME, COST_PER_HOUR, SUPID) \
+                VALUES('%d', '%s', '%d', '%d', '%d', '%d', '%d', %d)" % (
+                    row["HOTELID"], row["TYPE"], row["SERVICE_EXP"], row["MONTH"], 
+                    row["YEAR"], row["TOTAL_INCOME"], row["COST_PER_HOUR"], row["SUPID"]
+                )
+            print(query)
+            cur.execute(query)
+
+            finance_exp = "UPDATE FINANCES SET SERVICE_EXP = SERVICE_EXP + %d, TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+                row["SERVICE_EXP"], row["TOTAL_INCOME"], row["HOTELID"], row["MONTH"], row["YEAR"]
+            )
+            print(finance_exp)
+            cur.execute(finance_exp)
+        
         con.commit()
 
 def add_room():
@@ -849,13 +932,16 @@ def finance_report():
     '''
     Generates Finance report for a give hotelid , month , year
     '''
-    try:
+    if True:
         hotelid = int(input("Enter hotel id: "))
         month = int(input("Enter Month: "))
         year = int(input("Year: "))
         if not finances_exists(hotelid,month,year):
             print("No such Finance entry has been made. \n")
             return
+        
+        populate_exp_profits(hotelid, month, year)
+
         query = "SELECT * FROM FINANCES NATURAL JOIN EXPENDITURE NATURAL JOIN PROFIT WHERE \
                 FINANCES.HOTELID=%s AND \
                 FINANCES.MONTH=%s AND \
@@ -881,9 +967,9 @@ def finance_report():
         print("TOTAL INCOME:         ",finances["TOTAL_INCOME"])
         print("TOTAL PROFIT:         ",finances["TOTAL_PROFIT"])
         print("-------------------------------------------------------------\n")
-    except Exception as e:
-        print("Failed to generate report \n")
-        print(e)
+    # except Exception as e:
+    #     print("Failed to generate report \n")
+    #     print(e)
 
 def add_guest():
     if True:
@@ -967,6 +1053,22 @@ def remove_guest():
             print("Guest does not exist")
             return
         
+        clear_mr_entry = "DELETE FROM MASTER_RELATIONSHIP WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (
+            row["ROOMNO"],
+            row["HOTELID"],
+            row["CHECKIN"],
+            row["CHECKOUT"]
+        )
+        cur.execute(clear_mr_entry)
+
+        #  GENERATE COST
+        cost_guest_generation(
+            row["ROOMNO"],
+            row["HOTELID"],
+            row["CHECKIN"],
+            row["CHECKOUT"]
+        )
+
         query = "DELETE FROM GUESTS WHERE ROOMNO = %d AND HOTELID = %d AND CHECKIN = '%s' AND CHECKOUT = '%s'" % (
             row["ROOMNO"],
             row["HOTELID"],
@@ -1011,9 +1113,10 @@ def add_guest_club():
         row["CHECKOUT"] = input("Checkout date: ")
         print("Enter Club details: ")
         row["CLUB_TYPE"] = input("Club type: ")
-        row["MONTH"] = int(input("Month of joining: "))
-        row["YEAR"] = int(input("Year: "))
         row["CLUB_HOURS_USED"] = int(input("Hours registered for: "))
+        # row["MONTH"] = int(input("Month of joining: "))
+        # row["YEAR"] = int(input("Year: "))
+        row["YEAR"], row["MONTH"] = int(row["CHECKOUT"].split("-")[0]), int(row["CHECKOUT"].split("-")[1])
 
         if not guest_exists(row["ROOMNO"], row["HOTELID"], row["CHECKIN"], row["CHECKOUT"]):
             print("Invalid guest information")
@@ -1034,12 +1137,17 @@ def add_guest_club():
                 while not supervisor_exists(supid):
                     supid = int(input("Supervisor does not exist. Enter valid ID: "))
                 cost_per_hour = int(input("Enter cost per hour for this month: "))
+                service_exp = int(input("Enter projected service expenditure: "))
 
-                club_type_query = "INSERT INTO CLUBS (HOTELID, TYPE, MONTH, YEAR, SUPID, COST_PER_HOUR) VALUES (%d, '%s', %d, %d, %d, %d)" % (
-                    row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"], supid, cost_per_hour
+                club_type_query = "INSERT INTO CLUBS (HOTELID, TYPE, MONTH, YEAR, SUPID, COST_PER_HOUR, SERVICE_EXP) VALUES (%d, '%s', %d, %d, %d, %d, %d)" % (
+                    row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"], supid, cost_per_hour, service_exp
                 )
-
                 cur.execute(club_type_query)
+
+                finance_exp = "UPDATE FINANCES SET SERVICE_EXP = SERVICE_EXP + %d, TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+                    row["SERVICE_EXP"], row["TOTAL_INCOME"], row["HOTELID"], row["MONTH"], row["YEAR"]
+                )
+                cur.execute(finance_exp)
         
         create_finances_if_not_exist(row["HOTELID"], row["MONTH"], row["YEAR"])
 
@@ -1087,6 +1195,28 @@ def add_guest_club():
                             row["MONTH"], row["YEAR"]
                         )
             cur.execute(mr_query)
+        
+        club_rate_query = "SELECT COST_PER_HOUR FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s' AND MONTH = %d AND YEAR = %d" % (
+            row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"]
+        )
+        cur.execute(club_rate_query)
+        club_rate = cur.fetchone()["COST_PER_HOUR"]
+
+        print("Club registered for month = %d and year = %d" % (row["MONTH"], row["YEAR"]))
+        print("Cost per hour = ", club_rate)
+        
+
+        club_income_update = "UPDATE CLUBS SET TOTAL_INCOME = TOTAL_INCOME + %d \
+            WHERE HOTELID = %d AND TYPE = '%s' AND MONTH = %d AND YEAR = %d" % (
+                row["CLUB_HOURS_USED"] * club_rate,
+                row["HOTELID"], row["CLUB_TYPE"], row["MONTH"], row["YEAR"]
+            )
+        cur.execute(club_income_update)
+
+        finance_exp = "UPDATE FINANCES SET TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+            row["CLUB_HOURS_USED"] * club_rate, row["HOTELID"], row["MONTH"], row["YEAR"]
+        )
+        cur.execute(finance_exp)
 
         con.commit()
 
@@ -1160,6 +1290,7 @@ def cost_guest():
             return
         if not guest_exists(roomno,hotelid,checkin,checkout):
             print("No such guest with the matching details exists \n")
+            return
 
         query = "SELECT CLUB_TYPE,CLUB_HOURS_USED,MONTH,YEAR FROM MASTER_RELATIONSHIP WHERE \
                 ROOMNO=%s AND \
@@ -1222,6 +1353,114 @@ def cost_guest():
         print("Couldn't generate bill \n")
         print(e)
 
+
+def cost_guest_generation(roomno, hotelid, checkin, checkout):
+    '''
+    Get the entire cost of stay and generate the bill for the guest
+    '''
+    try:
+        club_cost = 0
+        stay_cost = 0
+        member_discount = 0
+        date_format = "%Y-%m-%d"
+        member_discount_dict = {
+            1 : 100,
+            2 : 200,
+            3 : 300,
+            4 : 400,
+            5 : 500
+        }
+        member_stays_dict = {
+            10 : 100,
+            50 : 200,
+            100 : 500
+        }
+
+        if not room_hotel_exists(roomno,hotelid):
+            print("Room dosen't exist in the hotel\n")
+            return
+        if is_room_empty(roomno,hotelid):
+            print("Room is empty\n")
+            return
+        if not guest_exists(roomno,hotelid,checkin,checkout):
+            print("No such guest with the matching details exists \n")
+            return
+
+        query = "SELECT CLUB_TYPE,CLUB_HOURS_USED,MONTH,YEAR FROM MASTER_RELATIONSHIP WHERE \
+                ROOMNO=%s AND \
+                HOTELID=%s AND \
+                CHECKIN='%s' AND \
+                CHECKOUT='%s' "%(roomno , hotelid , checkin , checkout)
+        cur.execute(query)
+        results = cur.fetchall()
+
+        for result in results:
+            query = "SELECT COST_PER_HOUR FROM CLUBS WHERE \
+                    HOTELID=%s AND \
+                    TYPE='%s' AND \
+                    MONTH=%s AND \
+                    YEAR=%s"%(hotelid,result["CLUB_TYPE"],result["MONTH"],result["YEAR"])
+            cur.execute(query)
+            result1 = cur.fetchone()
+            club_cost = (club_cost + result1["COST_PER_HOUR"] * result["CLUB_HOURS_USED"])
+        
+        query = "SELECT TYPE FROM ROOMS WHERE \
+                NUMBER=%s AND \
+                HOTELID=%s "%(roomno , hotelid)
+        cur.execute(query)
+        type_result = cur.fetchone()
+        type_query = "SELECT RATE FROM ROOM_TYPE WHERE TYPE=%s"%(type_result["TYPE"])
+        cur.execute(type_query)
+        type_cost = cur.fetchone()
+        start_date = datetime.strptime(checkin, date_format)
+        end_date = datetime.strptime(checkout, date_format)
+        stay_days = end_date - start_date
+        tot_stays = stay_days.days + 1
+        stay_cost = tot_stays * type_cost["RATE"]
+
+        member_check_query = "SELECT IS_MEMBER , MEMBERID FROM GUESTS WHERE \
+                            ROOMNO=%s AND \
+                            HOTELID=%s AND \
+                            CHECKIN='%s' AND \
+                            CHECKOUT='%s' "%(roomno,hotelid,checkin,checkout)
+        cur.execute(member_check_query)
+        member_check = cur.fetchone()
+        if not (member_check["MEMBERID"] is None) :
+            query = "SELECT TIER , STAYS FROM MEMBERS WHERE ID=%s"%(member_check["MEMBERID"])
+            cur.execute(query)
+            member_stats = cur.fetchone()
+            member_discount = member_discount + member_discount_dict[member_stats["TIER"]]
+            if member_stats["STAYS"] >= 100:
+                member_discount = member_discount + member_stays_dict[100]
+            elif member_stats["STAYS"] >= 50:
+                member_discount = member_discount + member_stays_dict[50]
+            elif member_stats["STAYS"] >= 10:
+                member_discount = member_discount + member_stays_dict[10]
+
+        print("Your total stay cost is:  " , stay_cost)
+        print("Your total club cost is: " , club_cost)
+        print("Discount :" , member_discount)
+        grand_total = stay_cost + club_cost - member_discount
+        print("Your grand total is: ", grand_total)
+
+        year, month = int(checkout.split('-')[0]), int(checkout.split('-')[1])
+
+        print("year = %d, month = %d" % (year, month))
+
+        create_finances_if_not_exist(hotelid, month, year)
+
+        finances_income_update = "UPDATE FINANCES SET TOTAL_INCOME = TOTAL_INCOME + %d WHERE \
+            HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+                grand_total,
+                hotelid, month, year
+            )
+        cur.execute(finances_income_update)
+        con.commit()
+
+    except Exception as e:
+        print("Couldn't generate bill \n")
+        print(e)
+
 def view_employees(hId):	
     query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s)" % (	
         hId)	
@@ -1254,7 +1493,7 @@ def view_service_staff(hId):
         
 
 def view_manager(hId):
-     query = "select * from employee where id in (select id from MANAGER) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
+    query = "select * from employee where id in (select id from MANAGER) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
         hId)
     cur.execute(query)	
     for row in cur:	
@@ -1434,6 +1673,8 @@ while(1):
                     handle_views()
                 elif ch == 1:
                     dispatch()
+                elif ch == 3:
+                    add_club()
                 elif ch == 2:
                     add_hotel()
                 elif ch == 6:
@@ -1446,7 +1687,7 @@ while(1):
                     add_member()
                 elif (ch == 8):
                     add_finances()
-                elif (ch == 4):  # TODO: Compute cost	
+                elif (ch == 4):
                     add_guest()	
                 elif (ch == 5):	
                     remove_guest()
