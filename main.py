@@ -504,13 +504,14 @@ def modify_employee():
         query = ""
         if not (attr == "e7" or attr == "e8"):
             change = input("Enter the new value for the attribute: ")
-            query = "UPDATE EMPLOYEE SET %s=%s WHERE ID=%s" % (
+            query = "UPDATE EMPLOYEE SET %s='%s' WHERE ID=%s" % (
                 attr_dict[attr], change, id)
+            print(query)
 
         elif (attr == "e7" or attr == "e8"):
             if position == "supervisor" and attr == "e7":
                 change = input("Enter the new value for department: ")
-                query = "UPDATE SUPERVISOR SET DEPT=%s WHERE ID=%s" % (
+                query = "UPDATE SUPERVISOR SET DEPT='%s' WHERE ID=%s" % (
                     change, id)
 
             if position == "supervisor" and attr == "e8":
@@ -523,7 +524,7 @@ def modify_employee():
 
             if position == "service_staff" and attr == "e8":
                 change = input("Enter nrew value for department")
-                query = "UPDATE SERVICE_STAFF SET DEPT=%s WHERE ID=%s" % (
+                query = "UPDATE SERVICE_STAFF SET DEPT='%s' WHERE ID=%s" % (
                     change, id)
 
         cur.execute(query)
@@ -533,7 +534,6 @@ def modify_employee():
     except Exception as e:
         print("Failed to insert into database \n")
         print(e)
-
 
 '''
 Helper functions start
