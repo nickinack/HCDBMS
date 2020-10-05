@@ -107,11 +107,11 @@ def hireAnEmployee(hotelid_default=None):
             add_service_staff(row["ID"])
         elif position == "manager":
             add_manager(row["ID"])
+        
         if hotel_exists(hotelid):
-            belongs_to(hotelid, id)
+            belongs_to(hotelid, row["ID"])
 
-        year, month = int(row["JOINDATE"]).split(
-            '-')[0], int(row["JOINDATE"].split('-'))[1]
+        year, month = int(row["JOINDATE"].split('-')[0]), int(row["JOINDATE"].split('-')[1])
 
         create_finances_if_not_exist(hotelid, month, year)
 
@@ -283,8 +283,10 @@ def belongs_to(hotelid, empid):
     '''
     Implement Belongs to relationship
     '''
+    print("Belongs to")
     try:
-        query = "INSERT INTO BELONGS_TO VALUES (%s,%s)" % (hotelid, empid)
+        query = "INSERT INTO BELONGS_TO(HOTELID, EMPID) VALUES (%s,%s)" % (hotelid, empid)
+        print(query)
         cur.execute(query)
         con.commit()
         print("Successfully added employee to hotel")
@@ -813,6 +815,7 @@ def add_room():
             cur.execute(room_type_insert)
 
             cur.execute(query_room_type)
+            con.commit()
             room_type = cur.fetchone()
 
         row["TYPE"] = room_type["TYPE"]
@@ -901,40 +904,6 @@ def add_finances():
             print("Error while adding finances: No such hotel exists")
             return
 
-        #  EXPENDITURE
-        expenditure_query_sel = "SELECT TOTAL_EXP FROM EXPENDITURE WHERE ELEC_BILL = %d AND HOTEL_BILL = %d AND SERVICE_EXP = %d AND TOTAL_INCOME = %d AND EMP_EXP = %d" % (
-            row["ELEC_BILL"],
-            row["HOTEL_BILL"],
-            row["SERVICE_EXP"],
-            row["TOTAL_INCOME"],
-            row["EMP_EXP"]
-        )
-
-        cur.execute(expenditure_query_sel)
-        total_exp = 0
-        expenditure_query_res = cur.fetchone()
-        if expenditure_query_res is None:
-            total_exp = row["ELEC_BILL"] + row["HOTEL_BILL"] + \
-                row["SERVICE_EXP"] + row["TOTAL_INCOME"] + row["EMP_EXP"]
-            expenditure_query_ins = "INSERT INTO EXPENDITURE VALUES (%d, %d, %d, %d, %d, %d)" % (
-                row["ELEC_BILL"], row["HOTEL_BILL"], row["EMP_EXP"], row["SERVICE_EXP"], total_exp, row["TOTAL_INCOME"])
-            cur.execute(expenditure_query_ins)
-
-            cur.execute(expenditure_query_sel)
-            expenditure_query_res = cur.fetchone()
-
-        total_exp = expenditure_query_res["TOTAL_EXP"]
-
-        #   PROFIT
-        profit_query = "SELECT * FROM PROFIT WHERE TOTAL_EXP = %d AND TOTAL_INCOME = %d" % (
-            total_exp, row["TOTAL_INCOME"])
-        cur.execute(profit_query)
-
-        if cur.fetchone() is None:
-            profit_query = "INSERT INTO PROFIT (TOTAL_EXP, TOTAL_INCOME, TOTAL_PROFIT) VALUES (%d, %d, %d)" % (
-                total_exp, row["TOTAL_INCOME"], total_exp + row["TOTAL_INCOME"])
-            cur.execute(profit_query)
-
         finances_query = "INSERT INTO FINANCES(HOTELID, MONTH, YEAR, ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME) values (%d, %d,%d,%d,%d,%d,%d,%d)" % (
             row["HOTELID"],
             row["MONTH"],
@@ -947,6 +916,10 @@ def add_finances():
         )
 
         cur.execute(finances_query)
+        con.commit()
+
+        populate_exp_profits(row["HOTELID"], row["MONTH"], row["YEAR"])
+
         con.commit()
         print("Inserted into database")
 
