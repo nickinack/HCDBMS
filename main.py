@@ -1289,10 +1289,29 @@ def view_member_guests(hId):
 def view_member_of_tier(hId):
     tier = int(input("enter tier: "))
     query = "select * from members where tier = %s" % (tier)
+    cur.execute(query)
 
     print("ID\tFNAME\tLNAME\tEMAIL")
     for row in cur:
         print(row["ID"], row["FNAME"], row["LNAME"], row["EMAIL"])
+    print("\n")
+
+def view_all_clubs(hId):
+    query = "select * from clubs where hotelid = %s" % (hId)
+    cur.execute(query)
+
+    # print()
+    for row in cur:
+        print(row["TYPE"])
+    print("\n")
+
+def view_clubs_finance_type(hId:
+    cType = input("Please specify club type: "))
+
+    query = "select * from clubs where hotelid = %s and type = %s" % (hId, cType)
+    cur.execute(query)
+    for row in cur:
+        print(row["TOTAL_INCOME"], row["SERVICE_EXP"], row["MONTH"], row["YEAR"])
     print("\n")
 
 def handle_views():
@@ -1304,8 +1323,8 @@ def handle_views():
     print("3.  Finances")  # SPECIAL CASE
     print("4. Clubs")
     print("5. Rooms")
-    print("18. LATEST MEMBERS")
-    print("19. FINANCIAL REPORT")
+    print("6. LATEST MEMBERS")
+    print("7. FINANCIAL REPORT")
 
     choice = int(input("SELECT> "))
 
@@ -1350,17 +1369,22 @@ def handle_views():
             
     
     if (choice == 4):
-        print("1. All clubs")
-        print("2. Clubs of a hotel")
-        print("3. Clubs under a supervisor")
-        print("4. Clubs of type")
+        hId = int(input("Please specify hotelID: "))
+        print("1. All Clubs")
+        print("1. Finance info of clubs of type")
+        chch = int(input("SELECT> "))
+        if (chch == 1):
+            view_all_clubs(hId)
+        if (chch == 2):
+            view_clubs_finance_type(hId)
+        else:
+            print("invlaid")
 
     if (choice == 5):
         print("1. Rooms of a hotel")
         print("2. Unoccupied rooms of a hotel")
         print("3. Rooms in a hotel currently occupied")
-        print("4. Guest staying in room")
-
+        print("4. Rooms of a certain cost interval")
 
 # Global
 while(1):
