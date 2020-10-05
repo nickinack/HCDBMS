@@ -557,8 +557,8 @@ def service_staff_exists(id):
 
 
 def populate_exp_profits(hotelid, month, year):
-    query = "SELECT ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME FROM FINANCES \
-        WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+    print("here")
+    query = "SELECT ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME FROM FINANCES WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
             hotelid, month, year
         )
     cur.execute(query)
@@ -574,13 +574,18 @@ def populate_exp_profits(hotelid, month, year):
         )
     cur.execute(query)
 
-    if cur.fetchone() is None:
+    res = cur.fetchone()
+    print("First res: ")
+    print(res)
+    if res is None:
+        print("inserting into exp")
         query = "INSERT INTO EXPENDITURE (ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME, TOTAL_EXP) \
             VALUES (%d, %d, %d, %d, %d, %d)" % (
                 exp_res["ELEC_BILL"], exp_res["HOTEL_BILL"], exp_res["EMP_EXP"],
                 exp_res["SERVICE_EXP"], exp_res["TOTAL_INCOME"], total_exp
             )
         cur.execute(query)
+        con.commit()
 
     query = "SELECT * FROM PROFIT WHERE TOTAL_EXP = %d AND TOTAL_INCOME = %d" % (
         total_exp, exp_res["TOTAL_INCOME"]
@@ -592,6 +597,7 @@ def populate_exp_profits(hotelid, month, year):
             total_exp, exp_res["TOTAL_INCOME"], exp_res["TOTAL_INCOME"] - total_exp
         )
         cur.execute(query)
+        con.commit()
 
 
 def hotel_exists(id):
