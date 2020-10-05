@@ -1653,7 +1653,7 @@ def view_all_clubs(hId):
 
 
 def view_clubs_finance_type(hId):
-    cType = input("Please specify club type: "))
+    cType = input("Please specify club type: ")
 
     query="select * from clubs where hotelid = %s and type = %s" % (hId, cType)
     cur.execute(query)
@@ -1663,9 +1663,9 @@ def view_clubs_finance_type(hId):
     print("\n")
 
 def view_all_rooms(hId):
-     query="select * from rooms where hotelid = %s" % (hId)
-     cur.execute(query)
-     for row in cur:
+    query="select * from rooms where hotelid = %s" % (hId)
+    cur.execute(query)
+    for row in cur:
         print(row["NUMBER"], row["STATUS"])
     print("\n")
 
