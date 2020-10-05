@@ -510,6 +510,43 @@ def service_staff_exists(id):
     cur.execute(query)
     return cur.fetchone() is not None
 
+def populate_exp_profits(hotelid, month, year):
+    query = "SELECT ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME FROM FINANCES \
+        WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+            hotelid, month, year
+        )
+    cur.execute(query)
+    exp_res = cur.fetchone()
+
+    total_exp = exp_res["ELEC_BILL"] + exp_res["HOTEL_BILL"] + exp_res["SERVICE_EXP"] + exp_res["EMP_EXP"]
+
+    query = "SELECT TOTAL_EXP FROM EXPENDITURE WHERE ELEC_BILL = %d AND HOTEL_BILL = %d  AND EMP_EXP = %d \
+        AND SERVICE_EXP = %d AND TOTAL_INCOME = %d" % (
+            exp_res["ELEC_BILL"], exp_res["HOTEL_BILL"], exp_res["EMP_EXP"],
+            exp_res["SERVICE_EXP"], exp_res["TOTAL_INCOME"]
+        )
+    cur.execute(query)
+
+    if cur.fetchone() is None:
+        query = "INSERT INTO EXPENDITURE (ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME, TOTAL_EXP) \
+            VALUES (%d, %d, %d, %d, %d, %d)" % (
+                exp_res["ELEC_BILL"], exp_res["HOTEL_BILL"], exp_res["EMP_EXP"],
+                exp_res["SERVICE_EXP"], exp_res["TOTAL_INCOME"], total_exp
+            )
+        cur.execute(query)
+    
+    query = "SELECT * FROM PROFIT WHERE TOTAL_EXP = %d AND TOTAL_INCOME = %d" % (
+        total_exp, exp_res["TOTAL_INCOME"]
+    )
+    cur.execute(query)
+
+    if cur.fetchone() is None:
+        query = "INSERT INTO PROFIT (TOTAL_EXP, TOTAL_INCOME, TOTAL_PROFIT) VALUES (%d, %d, %d)" % (
+            total_exp, exp_res["TOTAL_INCOME"], exp_res["TOTAL_INCOME"] - total_exp
+        )
+        cur.execute(query)
+
+
 def hotel_exists(id):
     hotel_query = "SELECT ID FROM HOTEL WHERE ID = %d" % (id)
     cur.execute(hotel_query)
@@ -891,13 +928,16 @@ def finance_report():
     '''
     Generates Finance report for a give hotelid , month , year
     '''
-    try:
+    if True:
         hotelid = int(input("Enter hotel id: "))
         month = int(input("Enter Month: "))
         year = int(input("Year: "))
         if not finances_exists(hotelid,month,year):
             print("No such Finance entry has been made. \n")
             return
+        
+        populate_exp_profits(hotelid, month, year)
+
         query = "SELECT * FROM FINANCES NATURAL JOIN EXPENDITURE NATURAL JOIN PROFIT WHERE \
                 FINANCES.HOTELID=%s AND \
                 FINANCES.MONTH=%s AND \
@@ -923,9 +963,9 @@ def finance_report():
         print("TOTAL INCOME:         ",finances["TOTAL_INCOME"])
         print("TOTAL PROFIT:         ",finances["TOTAL_PROFIT"])
         print("-------------------------------------------------------------\n")
-    except Exception as e:
-        print("Failed to generate report \n")
-        print(e)
+    # except Exception as e:
+    #     print("Failed to generate report \n")
+    #     print(e)
 
 def add_guest():
     if True:
