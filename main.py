@@ -10,6 +10,7 @@ def add_hotel():
     """
     Add a new hotel
     """
+    # if True:
     if True:
         # Takes Hotel's details
         try:
@@ -32,7 +33,7 @@ def add_hotel():
             print(locationid)
             query = "INSERT INTO HOTEL VALUES ('%s','%s','%s','%s','%s')" % (
                 id, name, managerid, locationid['ID'], stars)
-            print(query)
+            # print(query)
             cur.execute(query)
             con.commit()
             if manager_flag:
@@ -58,7 +59,7 @@ def addLocation():
         zipcode = input("Zipcode: ")
         query = "INSERT INTO LOCATION (STREET,CITY,COUNTRY,ZIPCODE) VALUES ('%s','%s','%s','%s')" % (
             street, city, country, zipcode)
-        print(query)
+        # print(query)
         cur.execute(query)
         con.commit()
         cur.execute("SELECT ID FROM LOCATION WHERE STREET='%s' AND CITY='%s' AND COUNTRY='%s' AND ZIPCODE='%s'" % (
@@ -96,7 +97,7 @@ def hireAnEmployee(hotelid_default=None):
             return
         query = "INSERT INTO EMPLOYEE (FNAME, LNAME, ID, DOB, EMAIL, JOINDATE, SALARY, STATUS, PHONE) VALUES('%s','%s', %s, '%s', '%s', '%s', %s, '%s',%s)" % (
             row["FNAME"], row["LNAME"], row["ID"], row["DOB"], row["EMAIL"], row["JOINDATE"], row["SALARY"], row["STATUS"], row["PHONE"])
-        print(query)
+        # print(query)
         cur.execute(query)
         con.commit()
         print("Inserted Into Employee Database")
@@ -287,7 +288,7 @@ def belongs_to(hotelid, empid):
     print("Belongs to")
     try:
         query = "INSERT INTO BELONGS_TO(HOTELID, EMPID) VALUES (%s,%s)" % (hotelid, empid)
-        print(query)
+        # print(query)
         cur.execute(query)
         con.commit()
         print("Successfully added employee to hotel")
@@ -507,7 +508,7 @@ def modify_employee():
             change = input("Enter the new value for the attribute: ")
             query = "UPDATE EMPLOYEE SET %s='%s' WHERE ID=%s" % (
                 attr_dict[attr], change, id)
-            print(query)
+            # print(query)
 
         elif (attr == "e7" or attr == "e8"):
             if position == "supervisor" and attr == "e7":
@@ -711,7 +712,8 @@ Helper functions end
 
 def add_club():
 
-    if True:  # try-catch exempted for testing purposes
+    # if True:  # try-catch exempted for testing purposes
+    try:
         # Takes emplyee details as input
         row = {}
         print("Enter club's details: ")
@@ -758,7 +760,7 @@ def add_club():
             finance_exp = "UPDATE FINANCES SET SERVICE_EXP = SERVICE_EXP + %d, TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
                 row["SERVICE_EXP"], row["TOTAL_INCOME"], row["HOTELID"], row["MONTH"], row["YEAR"]
             )
-            print(finance_exp)
+            # print(finance_exp)
             cur.execute(finance_exp)
         else:
             query = "INSERT INTO CLUBS(HOTELID,  TYPE, SERVICE_EXP, MONTH, YEAR, TOTAL_INCOME, COST_PER_HOUR, SUPID) \
@@ -766,16 +768,19 @@ def add_club():
                     row["HOTELID"], row["TYPE"], row["SERVICE_EXP"], row["MONTH"],
                     row["YEAR"], row["TOTAL_INCOME"], row["COST_PER_HOUR"], row["SUPID"]
                 )
-            print(query)
+            # print(query)
             cur.execute(query)
 
             finance_exp = "UPDATE FINANCES SET SERVICE_EXP = SERVICE_EXP + %d, TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
                 row["SERVICE_EXP"], row["TOTAL_INCOME"], row["HOTELID"], row["MONTH"], row["YEAR"]
             )
-            print(finance_exp)
+            # print(finance_exp)
             cur.execute(finance_exp)
 
         con.commit()
+    except Exception as e:
+        print("Error adding clubs.")
+        print(e)
 
 
 def add_room():
@@ -827,7 +832,7 @@ def add_room():
         query = "INSERT INTO ROOMS(NUMBER, HOTELID, STATUS, TYPE) VALUES(%d, %d, %d, %d)" % (
             row["NUMBER"], row["HOTELID"], row["STATUS"], row["TYPE"])
 
-        print(query)
+        # print(query)
         cur.execute(query)
         con.commit()
 
@@ -838,7 +843,8 @@ def add_room():
 
 
 def add_member():
-    if True:
+    # if True:
+    try:
         row = {}
         print("Enter member details: ")
         row["TIER"] = int(input("Tier(1-5): "))
@@ -857,13 +863,14 @@ def add_member():
         cur.execute(query)
         con.commit()
         print("Inserted to database")
-    # except Exception as e:
-    #     print("Error while add_member(): ", e)
+    except Exception as e:
+        print("Error while add_member(): ", e)
 
 
 def add_finances():
    
-    if True:
+    # if True:
+    try:
         query = "SELECT SUM(SALARY) FROM EMPLOYEE WHERE NOT STATUS='FIRED'"
         cur.execute(query)
         salary_cnt = cur.fetchone()
@@ -904,13 +911,17 @@ def add_finances():
 
         con.commit()
         print("Inserted into database")
+    except Exception as e:
+        print("Error adding to finance.")
+        print(e)
 
 
 def add_service_staff_room():
     """
     Assign a service staff to a room
     """
-    if True:
+    # if True:
+    try:
         row = {}
         print("Enter room and service staff detail: ")
         row["ROOMNO"] = int(input("Room number: "))
@@ -931,13 +942,17 @@ def add_service_staff_room():
         con.commit()
 
         print("Successfully assigned")
+    except Exception as e:
+        print("Error assigning")
+        print(e)
 
 
 def remove_service_staff_room():
     """
     Remove a service staff from a room
     """
-    if True:
+    # if True:
+    try:
         row = {}
         print("Enter room and service staff detail: ")
         row["ROOMNO"] = int(input("Room number: "))
@@ -964,15 +979,17 @@ def remove_service_staff_room():
         con.commit()
 
         print("Successfully un-assigned")
-    # except Exception as e:
-    #    print(e)
+    except Exception as e:
+        print("Error unassigning service staff")
+        print(e)
 
 
 def finance_report():
     '''
     Generates Finance report for a give hotelid , month , year
     '''
-    if True:
+    # if True:
+    try:
         profit_avg_query = "SELECT AVG(TOTAL_PROFIT) AS AVG_PROFIT FROM PROFIT" 
         cur.execute(profit_avg_query)
         profit_avg = cur.fetchone()["AVG_PROFIT"]
@@ -1018,12 +1035,13 @@ def finance_report():
         if profit_avg < finances["TOTAL_PROFIT"]:
             print("Hotel profit higher than average")
         print("-------------------------------------------------------------\n")
-    # except Exception as e:
-    #     print("Failed to generate report \n")
-    #     print(e)
+    except Exception as e:
+        print("Failed to generate report \n")
+        print(e)
 
 def add_guest():
-    if True:
+    # if True:
+    try:
         row = {}
         print("Enter Guest details: ")
         row["ROOMNO"] = int(input("Room number: "))
@@ -1098,10 +1116,14 @@ def add_guest():
         con.commit()
 
         print("Guest checked in.")
+    except Exception as e:
+        print("Error checking in guest")
+        print(e)
 
 
 def remove_guest():
-    if True:
+    # if True:
+    try:
         row = {}
         print("Enter Guest details: ")
         row["ROOMNO"] = int(input("Room number: "))
@@ -1145,6 +1167,10 @@ def remove_guest():
 
         print(update_rooms_status)
         print("Guest successfully checked out. Room emptied.")
+    
+    except Exception as e:
+        print("Error checking out")
+        print(e)
 
 
 def add_guest_club():
@@ -1164,7 +1190,8 @@ def add_guest_club():
     +-----------------+--------------+------+-----+---------+-------+
     8 rows in set
     """
-    if True:
+    # if True:
+    try:
         row = {}
         print("Enter Guest details: ")
         row["ROOMNO"] = int(input("Room number: "))
@@ -1288,6 +1315,9 @@ def add_guest_club():
         con.commit()
 
         print("Guest successfully registered")
+    except Exception as e:
+        print("Error registering")
+        print(e)
 
 
 def dispatch():
@@ -1670,7 +1700,7 @@ while(1):
     username=input("Username: ")
     password=input("Password: ")
 
-    if True:  # try
+    try:
         # Set db name accordingly which have been create by you
         # Set host to the server's address if you don't want to use local SQLl server
         con=pymysql.connect(host = 'localhost',
@@ -1694,13 +1724,13 @@ while(1):
                 # Here taking example of Employee Mini-world
                 print("0. Get data")
                 print("1. Manage employees")
-                print("2. Add Hotel")  # Add Hotel
-                print("3. Add a Club")  # ABHISHEKH
-                print("4. Check in a Guest")  # ABHISHEKH
-                print("5. Check out a Guest")  # ABHISHEKH
-                print("6. Add a room to a hotel")  # ABHISHEKH
-                print("7. Guest registering to club")  # ABHISHEKH
-                print("8. Add monthly finance")  # ABHISHEKH
+                print("2. Add Hotel")
+                print("3. Add a Club")
+                print("4. Check in a Guest")
+                print("5. Check out a Guest")
+                print("6. Add a room to a hotel")
+                print("7. Guest registering to club")
+                print("8. Add monthly finance")
                 print("9. Generate profit report")
                 print("10. Generate Guest Bill")
                 print("11. Add a Member Guest")
@@ -1735,7 +1765,7 @@ while(1):
                     break
                 tmp=input("Enter any key to CONTINUE>")
 
-    # except:
-    #     tmp = sp.call('clear', shell=True)
-    #     print("Connection Refused: Either username or password is incorrect or user doesn't have access to database")
-    #     tmp = input("Enter any key to CONTINUE>")
+    except:
+        tmp = sp.call('clear', shell=True)
+        print("Connection Refused: Either username or password is incorrect or user doesn't have access to database")
+        tmp = input("Enter any key to CONTINUE>")
