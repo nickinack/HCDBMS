@@ -857,35 +857,7 @@ def add_member():
 
 
 def add_finances():
-    """
-        +--------------+------+------+-----+---------+-------+
-    | Field        | Type | Null | Key | Default | Extra |
-    +--------------+------+------+-----+---------+-------+
-    | HOTELID      | int  | NO   | PRI | NULL    |       |
-    | MONTH        | int  | NO   | PRI | NULL    |       |
-    | YEAR         | int  | NO   | PRI | NULL    |       |
-    | ELEC_BILL    | int  | NO   | MUL | NULL    |       |
-    | HOTEL_BILL   | int  | NO   |     | NULL    |       |
-    | EMP_EXP      | int  | NO   |     | NULL    |       |
-    | SERVICE_EXP  | int  | NO   |     | NULL    |       |
-    | TOTAL_INCOME | int  | NO   |     | NULL    |       |
-    +--------------+------+------+-----+---------+-------+
-
-
-    mysql> desc EXPENDITURE;
-    +--------------+------+------+-----+---------+-------+
-    | Field        | Type | Null | Key | Default | Extra |
-    +--------------+------+------+-----+---------+-------+
-    | ELEC_BILL    | int  | NO   | PRI | NULL    |       |
-    | HOTEL_BILL   | int  | NO   | PRI | NULL    |       |
-    | EMP_EXP      | int  | NO   | PRI | NULL    |       |
-    | SERVICE_EXP  | int  | NO   | PRI | NULL    |       |
-    | TOTAL_EXP    | int  | NO   | MUL | NULL    |       |
-    | TOTAL_INCOME | int  | NO   | PRI | NULL    |       |
-    +--------------+------+------+-----+---------+-------+
-    6 rows in set (0.00 sec)
-
-    """
+   
     if True:
         query = "SELECT SUM(SALARY) FROM EMPLOYEE WHERE NOT STATUS='FIRED'"
         cur.execute(query)
