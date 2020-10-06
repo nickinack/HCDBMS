@@ -1,7 +1,8 @@
 import subprocess as sp
 import pymysql
 import pymysql.cursors
-from datetime import datetime
+import datetime
+from tabulate import tabulate
 
 
 def add_hotel():
@@ -1539,138 +1540,21 @@ def cost_guest_generation(roomno, hotelid, checkin, checkout):
         print("Couldn't generate bill \n")
         print(e)
 
-
-def view_employees(hId):
-    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s)" % (
-        hId)
-    # print(query)
-    cur.execute(query)
-    rows = cur.fetchall
-    for row in cur:
-        print(row)
-        print(row["ID"], row["FNAME"], row["LNAME"])
-    print("\n")
-
-
-def view_fired_employees(hId):
-    query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s) and status != 'employed" % (
-        hId)
-    cur.execute(query)
-    for row in cur:
-        # print(row)
-        print(row["ID"], row["FNAME"], row["LNAME"])
-    print("\n")
-
-
-def view_service_staff(hId):
-    query = "select * from employee where id in (select id from service_staff) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
-        hId)
-    cur.execute(query)
-    for row in cur:
-        # print(row)
-        print(row["ID"], row["FNAME"], row["LNAME"])
-    print("\n")
-
-
-def view_manager(hId):
-    query = "select * from employee where id in (select id from MANAGER) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
-        hId)
-    cur.execute(query)
-    for row in cur:
-        # print(row)
-        print(row["ID"], row["FNAME"], row["LNAME"])
-    print("\n")
-
-
-def view_guests(hId):
-    query = "select * from guests where hotelid = %s" % (hId)
-    cur.execute(query)
-    print("ROOMNO", "\t", "CHECKIN", "\t", "CHECKOUT")
-    for row in cur:
-        print(row["ROOMNO"], row["CHECKIN"], row["CHECKOUT"])
-    print("\n")
-
-
-def view_members(hId):
-    query = "select * from members"
-    cur.execute(query)
-    print("ID\tFNAME\tLNAME\tEMAIL")
-    for row in cur:
-        print(row["ID"], row["FNAME"], row["LNAME"], row["EMAIL"])
-    print("\n")
-
-
-def view_member_guests(hId):
-    query = "select * from members where ID in (selct MEMBERID from guests where hotelid = %s and ISMEMBER = 1)" % (
-        hId)
-    cur.execute(query)
-    print("ROOMNO | MEMBERID | CHECKIN | CHECKOUT")
-    for row in cur:
-        print(row["ROOMNO"], row["MEMBERID"], row["CHECKIN"], row["CHECKOUT"])
-    print("\n")
-
-
-def view_member_of_tier(hId):
-    tier = int(input("enter tier: "))
-    query = "select * from members where tier = %s" % (tier)
-    cur.execute(query)
-
-    print("ID\tFNAME\tLNAME\tEMAIL")
-    for row in cur:
-        print(row["ID"], row["FNAME"], row["LNAME"], row["EMAIL"])
-    print("\n")
-
-
-def view_all_clubs(hId):
-    query = "select * from clubs where hotelid = %s" % (hId)
-    cur.execute(query)
-
-    # print()
-    for row in cur:
-        print(row["TYPE"])
-    print("\n")
-
-
-def view_clubs_finance_type(hId):
-    cType = input("Please specify club type: ")
-
-    query="select * from clubs where hotelid = %s and type = %s" % (hId, cType)
-    cur.execute(query)
-    for row in cur:
-        print(row["TOTAL_INCOME"], row["SERVICE_EXP"],
-              row["MONTH"], row["YEAR"])
-    print("\n")
-
-def view_all_rooms(hId):
-    query="select * from rooms where hotelid = %s" % (hId)
-    cur.execute(query)
-    for row in cur:
-        print(row["NUMBER"], row["STATUS"])
-    print("\n")
-
-def view_all_occupied_rooms(hId):
-    query="select * from rooms where hotelid = %s and status = 1" % (hId)
-    cur.execute(query)
-    for row in cur:
-        print(row["NUMBER"])
-    print("\n")
-
-def view_all_unoccupied_rooms(hId):
-    query="select * from rooms where hotelid = %s and status = 0" % (hId)
-    cur.execute(query)
-    for row in cur:
-        print(row["NUMBER"])
-    print("\n")
-
-def view_room_of_cost(hId):
-    lb=int(input("enter lower bound: "))
-    ub=int(input("enter upper bound: "))
-    query="select * from rooms, room_type where rooms.type = room_type.type and hotelid = %s and %s >= rate and %s <= rate" % (
-        hId, ub, lb)
-    cur.execute(query)
-    for row in cur:
-        print(row["NUMBER"])
-    print("\n")
+def view_table(rows):
+    r = []
+    try:
+        r.append(list(rows[0].keys()))
+    except Exception as e:
+        print(e)   
+        return
+    for row in rows:
+        temp = []
+        for k in row.keys():
+            temp.append(row[k])
+        r.append(temp)
+    print(tabulate(r, tablefmt="grid", headers="firstrow"))
+    print()
+    return
 
 def handle_views():
     print("Select from the following to retrieve information: ")
@@ -1685,7 +1569,7 @@ def handle_views():
     print("7. FINANCIAL REPORT")
 
     choice=int(input("SELECT> "))
-
+    query = ""
     if (choice == 1):
         hId=int(input("Please specify hotelID: "))
         print("1.  Employees")
@@ -1695,15 +1579,19 @@ def handle_views():
         print("5.  Managers")
         chch=int(input("SELECT> "))
         if (chch == 1):
-            view_employees(hId)
+            query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s)" % (
+                hId)
         elif (chch == 2):
-            view_fired_employees(hId)
+            query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s) and status != 'employed" % (
+                hId)
         elif (chch == 3):
-            view_service_staff(hId)
+            query = "select * from employee where id in (select id from service_staff) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
+                hId)
         elif (chch == 4):
-            view_supervisor(hId)
+            query = "select * from employee where id in (select id from supervisor) and hotelid = %s" %(hId)
         elif (chch == 5):
-            view_manager(hId)
+            query = "select * from employee where id in (select id from MANAGER) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
+                hId)
         else:
             print("invalid")
 
@@ -1715,13 +1603,14 @@ def handle_views():
         print("4.  Members of a tier")
         chch=int(input("SELECT> "))
         if (chch == 1):
-            view_guests(hId)
+            query = "select * from guests where hotelid = %s" % (hId)
         elif (chch == 2):
-            view_members()
+            query = "select * from members"
         elif(chch == 3):
-            view_member_guests(hId)
+            query = "select * from members where ID in (selct MEMBERID from guests where hotelid = %s and ISMEMBER = 1)" % (
+                hId)
         elif (chch == 4):
-            view_member_of_tier(hId)
+            query = "select * from members where tier = %s" % (tier)
         else:
             print("invlalid")
 
@@ -1732,9 +1621,11 @@ def handle_views():
         print("1. Finance info of clubs of type")
         chch=int(input("SELECT> "))
         if (chch == 1):
-            view_all_clubs(hId)
+            query = "select * from clubs where hotelid = %s" % (hId)
         if (chch == 2):
-            view_clubs_finance_type(hId)
+            cType = input("Please specify club type: ")
+            query = "select * from clubs where hotelid = %s and type = %s" % (
+                hId, cType)
         else:
             print("invlaid")
 
@@ -1746,16 +1637,27 @@ def handle_views():
         print("4. Rooms of a certain cost interval")
         chch=int(input("SELECT> "))
         if (chch == 1):
-            view_all_rooms()
+            query = "select * from rooms, room_type where hotelid = %s and rooms.type = room_type.type" % (
+                hId)
         elif (chch == 2):
-            view_all_unoccupied_rooms()
+            query = "select * from rooms where hotelid = %s and status = 0" % (
+                hId)
         elif (chch == 3):
-            view_all_occupied_rooms()
+            query = "select * from rooms where hotelid = %s and status = 1" % (
+                hId)
         elif (chch == 4):
-            view_room_of_cost()
+            lb = int(input("enter lower bound: "))
+            ub = int(input("enter upper bound: "))
+            query = "select * from rooms, room_type where rooms.type = room_type.type and hotelid = %s and %s >= rate and %s <= rate" % (
+                hId, ub, lb)
         else:
             print("invlalid")
-
+    try:
+        cur.execute(query)
+    except expression as e:
+        print(e)
+    rows = cur.fetchall()
+    view_table(rows)
 
 
 # Global
@@ -1784,7 +1686,8 @@ while(1):
 
         tmp=input("Enter any key to CONTINUE>")
 
-        with con.cursor() as cur:
+        with con.cursor():
+            cur = con.cursor()
             while(1):
                 # Here taking example of Employee Mini-world
                 print("0. Get data")
