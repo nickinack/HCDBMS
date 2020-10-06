@@ -1566,11 +1566,9 @@ def handle_views():
     print("0. Hotels")
     print("1. Employees")
     print("2. Members and guests")
-    print("3.  Finances")  # SPECIAL CASE
-    print("4. Clubs")
-    print("5. Rooms")
-    print("6. LATEST MEMBERS")
-    print("7. FINANCIAL REPORT")
+    print("3. Clubs")
+    print("4. Rooms")
+    print("5. FINANCIAL REPORT")
 
     choice=int(input("SELECT> "))
     query = ""
@@ -1620,10 +1618,10 @@ def handle_views():
             print("invalid")
 
 
-    if (choice == 4):
+    if (choice == 3):
         hId=int(input("Please specify hotelID: "))
         print("1. All Clubs")
-        print("1. Finance info of clubs of type")
+        print("2. Finance info of clubs of type")
         chch=int(input("SELECT> "))
         if (chch == 1):
             query = "select * from CLUBS where HOTELID = %s" % (hId)
@@ -1634,7 +1632,7 @@ def handle_views():
         else:
             print("invlaid")
 
-    if (choice == 5):
+    if (choice == 4):
         hId=int(input("Please specify hotelID: "))
         print("1. Rooms of a hotel")
         print("2. Unoccupied rooms of a hotel")
@@ -1657,6 +1655,12 @@ def handle_views():
                 hId, ub, lb)
         else:
             print("invalid")
+    
+    if (chch == 5):
+        finance_report()
+
+
+
     try:
         cur.execute(query)
     except Exception as e:
