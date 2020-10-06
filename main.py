@@ -1607,16 +1607,16 @@ def handle_views():
         print("4.  Members of a tier")
         chch=int(input("SELECT> "))
         if (chch == 1):
-            query = "select * from GUESTS where hotelid = %s" % (hId)
+            query = "select * from GUESTS where HOTELID = %s" % (hId)
         elif (chch == 2):
             query = "select * from MEMBERS"
         elif(chch == 3):
             query = "select * from MEMBERS where ID in (selct MEMBERID from guests where HOTELID = %s and ISMEMBER = 1)" % (
                 hId)
         elif (chch == 4):
-            query = "select * from MEMBERS where tier = %s" % (tier)
+            query = "select * from MEMBERS where TIER = %s" % (tier)
         else:
-            print("invlalid")
+            print("invalid")
 
 
     if (choice == 4):
