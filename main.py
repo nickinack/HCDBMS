@@ -1642,18 +1642,18 @@ def handle_views():
         print("4. Rooms of a certain cost interval")
         chch=int(input("SELECT> "))
         if (chch == 1):
-            query = "select * from rooms, room_type where hotelid = %s and rooms.type = room_type.type" % (
+            query = "select * from ROOMS, ROOM_TYPE where HOTELID = %s and ROOMS.TYPE = ROOM_TYPE.TYPE" % (
                 hId)
         elif (chch == 2):
-            query = "select * from rooms where hotelid = %s and status = 0" % (
+            query = "select * from ROOMS where HOTELID = %s and STATUS = 0" % (
                 hId)
         elif (chch == 3):
-            query = "select * from rooms where hotelid = %s and status = 1" % (
+            query = "select * from ROOMS where HOTELID = %s and STATUS = 1" % (
                 hId)
         elif (chch == 4):
             lb = int(input("enter lower bound: "))
             ub = int(input("enter upper bound: "))
-            query = "select * from rooms, room_type where rooms.type = room_type.type and hotelid = %s and %s >= rate and %s <= rate" % (
+            query = "select * from ROOMS, ROOM_TYPE where ROOMS.type = ROOM_TYPE.type and hotelid = %s and %s >= rate and %s <= rate" % (
                 hId, ub, lb)
         else:
             print("invlalid")
