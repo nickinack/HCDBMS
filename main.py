@@ -992,6 +992,9 @@ def finance_report():
     Generates Finance report for a give hotelid , month , year
     '''
     if True:
+        profit_avg_query = "SELECT AVG(TOTAL_PROFIT) AS AVG_PROFIT FROM PROFIT" 
+        cur.execute(profit_avg_query)
+        profit_avg = cur.fetchone()["AVG_PROFIT"]
         hotelid = int(input("Enter hotel id: "))
         month = int(input("Enter Month: "))
         year = int(input("Year: "))
@@ -1026,11 +1029,12 @@ def finance_report():
         print("TOTAL EXPENDITURE:    ", finances["TOTAL_EXP"])
         print("TOTAL INCOME:         ", finances["TOTAL_INCOME"])
         print("TOTAL PROFIT:         ", finances["TOTAL_PROFIT"])
+        if profit_avg < finances["TOTAL_PROFIT"]:
+            print("Hotel profit higher than average")
         print("-------------------------------------------------------------\n")
     # except Exception as e:
     #     print("Failed to generate report \n")
     #     print(e)
-
 
 def add_guest():
     if True:
