@@ -1607,14 +1607,14 @@ def handle_views():
         print("4.  Members of a tier")
         chch=int(input("SELECT> "))
         if (chch == 1):
-            query = "select * from guests where hotelid = %s" % (hId)
+            query = "select * from GUESTS where hotelid = %s" % (hId)
         elif (chch == 2):
-            query = "select * from members"
+            query = "select * from MEMBERS"
         elif(chch == 3):
-            query = "select * from members where ID in (selct MEMBERID from guests where hotelid = %s and ISMEMBER = 1)" % (
+            query = "select * from MEMBERS where ID in (selct MEMBERID from guests where HOTELID = %s and ISMEMBER = 1)" % (
                 hId)
         elif (chch == 4):
-            query = "select * from members where tier = %s" % (tier)
+            query = "select * from MEMBERS where tier = %s" % (tier)
         else:
             print("invlalid")
 
@@ -1625,10 +1625,10 @@ def handle_views():
         print("1. Finance info of clubs of type")
         chch=int(input("SELECT> "))
         if (chch == 1):
-            query = "select * from clubs where hotelid = %s" % (hId)
+            query = "select * from CLUBS where HOTELID = %s" % (hId)
         if (chch == 2):
             cType = input("Please specify club type: ")
-            query = "select * from clubs where hotelid = %s and type = %s" % (
+            query = "select * from CLUBS where HOTELID = %s and TYPE = '%s'" % (
                 hId, cType)
         else:
             print("invlaid")
