@@ -1627,7 +1627,7 @@ def handle_views():
         chch=int(input("SELECT> "))
         if (chch == 1):
             query = "select * from CLUBS where HOTELID = %s" % (hId)
-        if (chch == 2):
+        elif (chch == 2):
             cType = input("Please specify club type: ")
             query = "select * from CLUBS where HOTELID = %s and TYPE = '%s'" % (
                 hId, cType)
@@ -1656,7 +1656,7 @@ def handle_views():
             query = "select * from ROOMS, ROOM_TYPE where ROOMS.type = ROOM_TYPE.type and hotelid = %s and %s >= rate and %s <= rate" % (
                 hId, ub, lb)
         else:
-            print("invlalid")
+            print("invalid")
     try:
         cur.execute(query)
     except Exception as e:
