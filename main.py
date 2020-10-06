@@ -1658,7 +1658,7 @@ def handle_views():
             print("invlalid")
     try:
         cur.execute(query)
-    except expression as e:
+    except Exception as e:
         print(e)
     rows = cur.fetchall()
     view_table(rows)
