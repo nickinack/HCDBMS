@@ -655,7 +655,7 @@ def manages_hotel(id):
 
 def create_finances_if_not_exist(hotelid, month, year):
     if not finances_exists(hotelid, month, year):
-        print("Please update finances for hotel with ID %d in the month of %d (%d)" % (hotelid, month, year))
+        print("Reminder to update finances for hotel with ID %d in the month of %d (%d)" % (hotelid, month, year))
 
         query = "INSERT INTO FINANCES (HOTELID, MONTH, YEAR, elec_bill, hotel_bill) VALUES (%d, %d, %d, %d, %d)" % (
             hotelid, month, year, 0, 0)
@@ -847,6 +847,9 @@ def add_member():
         row["EMAILID"] = input("Email: ")
         row["DOB"] = input("Date of birth (YYYY-MM-DD): ")
         row["STAYS"] = int(input("Stays: "))
+
+        while row["TIER"] not in [1, 2, 3, 4, 5]:
+            row["TIER"] = int(input("Choose tier (1-5): "))
 
         query = "INSERT INTO MEMBERS (TIER, FNAME, LNAME, EMAILID, DOB, STAYS) values (%d, '%s', '%s', '%s', \'%s\', %d)" % (
             row["TIER"], row["FNAME"], row["LNAME"], row["EMAILID"], row["DOB"], row["STAYS"])
@@ -1042,7 +1045,6 @@ def add_guest():
         if y_out < y_in or (y_out == y_in and m_out < m_in) or (y_out == y_in and m_out == m_in and d_out <= d_in):
             print("Date errors")
             return
-        
 
         # Check valid room
         if not room_hotel_exists(row["ROOMNO"], row["HOTELID"]):
@@ -1087,7 +1089,8 @@ def add_guest():
             row["ROOMNO"], row["HOTELID"])
         cur.execute(update_rooms_status)
 
-        if row["ISMEMBER"]:  # increment number of stays
+        if row["ISMEMBE
+        create_finances_if_not_exist(row["HOTELID"], row["MONTH"], row["YEAR"])R"]:  # increment number of stays
             member_query = "UPDATE MEMBERS SET STAYS = STAYS + 1 WHERE ID = %d" % (
                 row["MEMBERID"])
             cur.execute(member_query)
@@ -1174,8 +1177,7 @@ def add_guest_club():
         row["CLUB_HOURS_USED"] = int(input("Hours registered for: "))
         # row["MONTH"] = int(input("Month of joining: "))
         # row["YEAR"] = int(input("Year: "))
-        row["YEAR"], row["MONTH"] = int(row["CHECKOUT"].split(
-            "-")[0]), int(row["CHECKOUT"].split("-")[1])
+        row["YEAR"], row["MONTH"] = int(row["CHECKOUT"].split("-")[0]), int(row["CHECKOUT"].split("-")[1])
 
         if not guest_exists(row["ROOMNO"], row["HOTELID"], row["CHECKIN"], row["CHECKOUT"]):
             print("Invalid guest information")
@@ -1207,7 +1209,7 @@ def add_guest_club():
                 cur.execute(club_type_query)
 
                 create_finances_if_not_exist(row["HOTELID"], row["MONTH"], row["YEAR"])
-                
+
                 finance_exp = "UPDATE FINANCES SET SERVICE_EXP = SERVICE_EXP + %d, TOTAL_INCOME = TOTAL_INCOME + %d WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
                     service_exp, cost_per_hour * row["CLUB_HOURS_USED"], row["HOTELID"], row["MONTH"], row["YEAR"]
                 )
