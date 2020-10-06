@@ -54,9 +54,17 @@ def addLocation():
     '''
     try:
         street = input("Street: ")
+        while street == "":
+            street = input("Street cannot be empty. Street: ")
         city = input("City: ")
+        while city == "":
+            city = input("City cannot be empty. City: ")
         country = input("Country: ")
+        while country == "":
+            country = input("Country cannot be empty. Country: ")
         zipcode = input("Zipcode: ")
+        while zipcode == "":
+            zipcode = input("Zipcode cannot be empty. Zipcode: ")
         query = "INSERT INTO LOCATION (STREET,CITY,COUNTRY,ZIPCODE) VALUES ('%s','%s','%s','%s')" % (
             street, city, country, zipcode)
         # print(query)
@@ -227,6 +235,8 @@ def add_supervisor(id):
             print("No such manager exists")
             return
         dept = input("Department: ")
+        while dept == "":
+            dept = input("Department cannot be empty. Department: ")
         query = "INSERT INTO SUPERVISOR VALUES (%s,%s,'%s')" % (
             id, managerid, dept)
         cur.execute(query)
@@ -250,6 +260,8 @@ def add_service_staff(id):
             print("No such supervisor exists")
             return
         dept = input("Department: ")
+        while dept == "":
+            dept = input("Department cannot be empty. Department: ")
         query = "INSERT INTO SERVICE_STAFF VALUES (%s,%s,'%s')" % (
             id, superid, dept)
         cur.execute(query)
@@ -285,7 +297,7 @@ def belongs_to(hotelid, empid):
     '''
     Implement Belongs to relationship
     '''
-    print("Belongs to")
+    # print("Belongs to")
     try:
         query = "INSERT INTO BELONGS_TO(HOTELID, EMPID) VALUES (%s,%s)" % (hotelid, empid)
         # print(query)
@@ -459,7 +471,7 @@ def modify_service_staff_for_one_room():
             return
         query = "UPDATE SERVICE_STAFF_ROOM SET SERVICE_STAFF_ID=%s WHERE ROOMNO=%s AND HOTELID=%s" % (
             id, roomno, hotelid)
-        cur.execute()
+        cur.execute(query)
         con.commit()
     except Exception as e:
         print("Failed to modify service staff details for the room \n")
@@ -719,6 +731,8 @@ def add_club():
         print("Enter club's details: ")
         row["HOTELID"] = int(input("HOTELID: "))
         row["TYPE"] = input("TYPE: ")
+        while row["TYPE"] == "":
+            row["TYPE"] = input("Type cannot be empty. Type: ")
         row["SERVICE_EXP"] = int(input("Monthly Service expenditure: "))
         row["MONTH"] = int(input("Month(1-12): "))
         row["YEAR"] = int(input("Year: "))
@@ -854,12 +868,12 @@ def add_member():
         row["DOB"] = input("Date of birth (YYYY-MM-DD): ")
         row["STAYS"] = int(input("Stays: "))
 
-        if row["TIER"] not in [1, 2, 3, 4, 5]:
+        while row["TIER"] not in [1, 2, 3, 4, 5]:
             row["TIER"] = int(input("Choose tier(1-5): "))
 
         query = "INSERT INTO MEMBERS (TIER, FNAME, LNAME, EMAILID, DOB, STAYS) values (%d, '%s', '%s', '%s', \'%s\', %d)" % (
             row["TIER"], row["FNAME"], row["LNAME"], row["EMAILID"], row["DOB"], row["STAYS"])
-        print("Query: ", query)
+        # print("Query: ", query)
         cur.execute(query)
         con.commit()
         print("Inserted to database")
