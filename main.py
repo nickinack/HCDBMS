@@ -1343,13 +1343,17 @@ def add_guest_club():
 
 def disp_employees(fname, lname):
     query = "SELECT * FROM EMPLOYEE WHERE FNAME = '%s' AND LNAME = '%s'" % (fname, lname)
-    try:
+    # try:
+    if True:
         cur.execute(query)
         rows = cur.fetchall()
-        view_table(rows)
-    except Exception as e:
-        print("Error while searching for employee")
-        print(e)
+        if rows == ():
+            print("No employees found")
+        else:
+            view_table(rows)
+    # except Exception as e:
+    #     print("Error while searching for employee")
+    #     print(e)
 
 
 def dispatch():
