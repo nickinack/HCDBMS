@@ -573,7 +573,7 @@ def service_staff_exists(id):
 
 
 def populate_exp_profits(hotelid, month, year):
-    print("here")
+    # print("here")
     query = "SELECT ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME FROM FINANCES WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
             hotelid, month, year
         )
@@ -591,10 +591,10 @@ def populate_exp_profits(hotelid, month, year):
     cur.execute(query)
 
     res = cur.fetchone()
-    print("First res: ")
-    print(res)
+    # print("First res: ")
+    # print(res)
     if res is None:
-        print("inserting into exp")
+        # print("inserting into exp")
         query = "INSERT INTO EXPENDITURE (ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME, TOTAL_EXP) \
             VALUES (%d, %d, %d, %d, %d, %d)" % (
                 exp_res["ELEC_BILL"], exp_res["HOTEL_BILL"], exp_res["EMP_EXP"],
@@ -884,8 +884,8 @@ def add_member():
 
 def add_finances():
    
-    # if True:
-    try:
+    if True:
+    # try:
         query = "SELECT SUM(SALARY) FROM EMPLOYEE WHERE NOT STATUS='FIRED'"
         cur.execute(query)
         salary_cnt = cur.fetchone()
@@ -908,6 +908,12 @@ def add_finances():
             print("Error while adding finances: No such hotel exists")
             return
 
+        if finances_exists(row["HOTELID"], row["MONTH"], row["YEAR"]):
+            finances_del = "DELETE FROM FINANCES WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+                row["HOTELID"], row["MONTH"], row["YEAR"]
+            )
+            cur.execute(finances_del)
+
         finances_query = "INSERT INTO FINANCES(HOTELID, MONTH, YEAR, ELEC_BILL, HOTEL_BILL, EMP_EXP, SERVICE_EXP, TOTAL_INCOME) values (%d, %d,%d,%d,%d,%d,%d,%d)" % (
             row["HOTELID"],
             row["MONTH"],
@@ -926,9 +932,9 @@ def add_finances():
 
         con.commit()
         print("Inserted into database")
-    except Exception as e:
-        print("Error adding to finance.")
-        print(e)
+    # except Exception as e:
+    #     print("Error adding to finance.")
+    #     print(e)
 
 
 def add_service_staff_room():
