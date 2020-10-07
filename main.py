@@ -1341,6 +1341,21 @@ def add_guest_club():
         print(e)
 
 
+def disp_employees(fname, lname):
+    query = "SELECT * FROM EMPLOYEE WHERE FNAME = '%s' AND LNAME = '%s'" % (fname, lname)
+    try:
+    # if True:
+        cur.execute(query)
+        rows = cur.fetchall()
+        if rows == ():
+            print("No employees found")
+        else:
+            view_table(rows)
+    except Exception as e:
+        print("Error while searching for employee")
+        print(e)
+
+
 def dispatch():
     """
     Function that maps helper functions to option entered
@@ -1352,6 +1367,7 @@ def dispatch():
     print("d. Remove service staff from room")
     print("e. Alter Employee Details")
     print("f. Modify service staff for room")
+    print("g. Search employees by name")
     ch = input("Enter choice: ")
     if(ch == "a"):
         hireAnEmployee()
@@ -1370,6 +1386,11 @@ def dispatch():
 
     elif (ch == "f"):
         modify_service_staff_for_one_room()
+    
+    elif ch == "g":
+        fname = input("Enter first name: ")
+        lname = input("Enter last name: ")
+        disp_employees(fname, lname)
 
     else:
         print("Error: Invalid Option")
@@ -1623,7 +1644,7 @@ def handle_views():
     if (choice == 1):
         hId=int(input("Please specify hotelID: "))
         print("1.  Employees")
-        print("2. Fired employees")
+        print("2.  Fired employees")
         print("3.  Service staff")
         print("4.  Supervisors")
         print("5.  Managers")
