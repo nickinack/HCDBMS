@@ -1610,6 +1610,10 @@ def handle_views():
 
     choice=int(input("SELECT> "))
     query = ""
+
+    if (choice == 0):
+        query = "select * from HOTEL"
+
     if (choice == 1):
         hId=int(input("Please specify hotelID: "))
         print("1.  Employees")
@@ -1694,7 +1698,7 @@ def handle_views():
         else:
             print("invalid")
     
-    if (chch == 5):
+    if (choice == 5):
         finance_report()
 
 
