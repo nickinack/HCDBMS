@@ -884,8 +884,8 @@ def add_member():
 
 def add_finances():
    
-    if True:
-    # try:
+    # if True:
+    try:
         query = "SELECT SUM(SALARY) FROM EMPLOYEE WHERE NOT STATUS='FIRED'"
         cur.execute(query)
         salary_cnt = cur.fetchone()
@@ -932,9 +932,9 @@ def add_finances():
 
         con.commit()
         print("Inserted into database")
-    # except Exception as e:
-    #     print("Error adding to finance.")
-    #     print(e)
+    except Exception as e:
+        print("Error adding to finance.")
+        print(e)
 
 
 def add_service_staff_room():
