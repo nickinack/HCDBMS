@@ -617,6 +617,7 @@ def populate_exp_profits(hotelid, month, year):
 
 
 def hotel_exists(id):
+    print("Inside hotel query")
     hotel_query = "SELECT ID FROM HOTEL WHERE ID = %d" % (id)
     cur.execute(hotel_query)
     return cur.fetchone() is not None
@@ -1705,6 +1706,40 @@ def handle_views():
     rows = cur.fetchall()
     view_table(rows)
 
+def elec_bound():
+    '''
+    Prints years where elctrivity bill was between the bounds
+    '''
+    try:
+        linput = int(input("Enter the lower bound for Eletricity bill: "))
+        rinput = int(input("Enter the upper bound for Electricty bill: "))
+        if (linput > rinput):
+            print("Lower bound greater than upper bound \n")
+            return
+        query = "SELECT MONTH,YEAR,ELEC_BILL FROM FINANCES WHERE ELEC_BILL BETWEEN %s AND %s"%(linput,rinput)
+        cur.execute(query)
+        results = cur.fetchall()
+        print("The results are as follows: ")
+        for result in results:
+            print("Month: ",result["MONTH"]," Year: ",result["YEAR"]," Electricity bill: ",result["ELEC_BILL"])
+    
+    except Exception as e:
+        print(e)
+
+def exp_sum():
+    '''
+    Given a year, it sums the service expenditure for that year
+    '''
+    try:
+        year = int(input("Enter year: "))
+        query = "SELECT SUM(SERVICE_EXP) AS SUM FROM FINANCES WHERE YEAR=%s"%(year)
+        cur.execute(query)
+        result = cur.fetchone()
+        print("The service expenditure sum for the given year is : " , result["SUM"])
+    
+    except Excetion as e:
+        print(e)
+
 
 # Global
 while(1):
@@ -1748,6 +1783,8 @@ while(1):
                 print("9. Generate profit report")
                 print("10. Generate Guest Bill")
                 print("11. Add a Member Guest")
+                print("12. Electricity bound")
+                print("13. Service Expenditures over a year")
                 print("20. Logout")
                 ch=int(input("Enter choice> "))
                 tmp=sp.call('clear', shell = True)
@@ -1775,11 +1812,15 @@ while(1):
                     remove_guest()
                 elif (ch == 10):
                     cost_guest()
+                elif (ch == 12):
+                    elec_bound()
+                elif (ch==13):
+                    exp_sum()
                 elif ch == 20:
                     break
                 tmp=input("Enter any key to CONTINUE>")
 
-    except:
-        tmp = sp.call('clear', shell=True)
+    except Exception as e:
+        print(e)
         print("Connection Refused: Either username or password is incorrect or user doesn't have access to database")
         tmp = input("Enter any key to CONTINUE>")
