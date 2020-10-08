@@ -141,6 +141,7 @@ def fireAnEmployee():
         id = int(input("Enter employee ID: "))
         query = ""
         position = ""
+        boolval = 0
         if not emp_exists(id):
             print("Employee does not exist in the database")
             return
@@ -150,22 +151,7 @@ def fireAnEmployee():
             return
 
         if manager_exists(id):
-            query = "DELETE FROM MANAGER WHERE ID=%s" % (id)
-            position = "Manager"
-            if manages_supervisor(id):
-                input_flag = input(
-                    "Manager is currently managing list of supervisors; would you like to change the manager for these supervisors (yes/no)?: ")
-                if input_flag == "yes":
-                    change_supervsior_manager(id)
-                else:
-                    return
-            if manages_hotel(id):
-                input_flag = input(
-                    "Manager manages the hotel; would you like to change the manager for the hotel (yes/no)?: ")
-                if input_flag == "yes":
-                    change_hotel_manager(id)
-                else:
-                    return
+           print("Cannot fire a manager ; only details of the manager can be changed\n")
 
         if service_staff_exists(id):
             query = "DELETE FROM SERVICE STAFF WHERE ID=%s" % (id)
@@ -174,7 +160,10 @@ def fireAnEmployee():
                 input_flag = input(
                     "Service staff is currently involved with room cleaning services; would you like to change the service staff for these rooms (yes/no): ")
                 if input_flag == "yes":
-                    change_room_service_staff(id)
+                    boolval = change_room_service_staff(id)
+                    if boolval == -1:
+                        print("Update failed \n ")
+                        return
                 else:
                     return
 
@@ -185,14 +174,18 @@ def fireAnEmployee():
                 input_flag = input(
                     "Supervisor is supervising some service staff members; would you like to change the service staff for these employees (yes/no)?: ")
                 if input_flag == "yes":
-                    change_supervisor_service_staff(id)
+                    boolval = change_supervisor_service_staff(id)
+                    if boolval == -1:
+                        print("Update failed \n")
                 else:
                     return
             if supervises_clubs(id):
                 input_flag = input(
                     "Supervisor is supervising clubs; would you like to change the supervisor for the clubs associated (yes/no)?: ")
                 if input_flag == "yes":
-                    pass
+                    boolval = change_supervisor_club(id)
+                    if boolval == -1
+                    print("Update failed \n")
                 else:
                     return
 
@@ -365,9 +358,11 @@ def change_room_service_staff(id):
             new_service_staff_id, id)
         cur.execute(query)
         con.commit()
+        return 1
     except Exception as e:
         print("Failed to change Service staff \n")
         print(e)
+        return -1
 
 
 def change_supervisor_service_staff(id):
@@ -387,9 +382,11 @@ def change_supervisor_service_staff(id):
             new_supid, id)
         cur.execute(query)
         con.commit()
+        return 1
     except Exception as e:
         print("Failed to change Supervisor \n")
         print(e)
+        return -1
 
 
 def change_supervisor_club(id):
@@ -408,9 +405,11 @@ def change_supervisor_club(id):
         query = "UPDATE CLUBS SET SUPID=%s WHERE SUPID=%s" % (new_supid, id)
         cur.execute(query)
         con.commit()
+        return 1
     except Exception as e:
         print("Failed to change Supervisor \n")
         print(e)
+        return -1
 
 
 def modify_manager_for_one_supervisor(id):
@@ -760,7 +759,7 @@ def add_club():
         row["TOTAL_INCOME"] = int(input("Monthly total income: "))
         row["COST_PER_HOUR"] = int(input("Cost per hour: "))
         row["SUPID"] = int(input("Supervisor ID: "))
-
+        
         if not (row["MONTH"] >= 1 and row["MONTH"] <= 12):
             print("Incorrect month entered")
             return
