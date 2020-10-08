@@ -31,7 +31,7 @@ Key features of our implementation include:
 First clone the repository and then go the respective directory. Install the requirements using:
 
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 Now,feed the dump using the following command:
