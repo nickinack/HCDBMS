@@ -138,7 +138,7 @@ def fireAnEmployee():
     Fire an employee
     '''
     try:
-        id = input("Enter employee ID: ")
+        id = int(input("Enter employee ID: "))
         query = ""
         position = ""
         if not emp_exists(id):
@@ -197,6 +197,8 @@ def fireAnEmployee():
                     return
 
         changeEmpStatus(id)
+        print(query)
+        query="DELETE FROM BELONGS_TO WHERE EMPID=%s"%(id)
         cur.execute(query)
         con.commit()
         print(position, " fired; records still present with status fired")
@@ -225,7 +227,7 @@ def add_supervisor(id,hotelid):
     '''
     try:
         managerid = int(input("Manager ID: "))
-        if (not manager_exists(managerid)) or (not employee_hotel(hotelid,empid)):
+        if (not manager_exists(managerid)) or (not employee_hotel(hotelid,managerid)):
             print("No such manager exists")
             return
         dept = input("Department: ")
@@ -611,7 +613,7 @@ def populate_exp_profits(hotelid, month, year):
 
 
 def hotel_exists(id):
-    # print("Inside hotel query")
+    print("Inside hotel query")
     hotel_query = "SELECT ID FROM HOTEL WHERE ID = %d" % (id)
     cur.execute(hotel_query)
     return cur.fetchone() is not None
@@ -643,14 +645,10 @@ def manages_supervisor(id):
 
 
 def supervises_service_staff(id):
-    query = "SELECT ID FROM SUPERVISOR WHERE ID=%s" % (id)
+    query = "SELECT SUPID FROM SERVICE_STAFF WHERE SUPID=%s" % (id)
     cur.execute(query)
     return cur.fetchone() is not None
 
-def employee_in_hotel(empid, hotelid):
-    query = "SELECT * FROM BELONGS_TO WHERE EMPID = %d AND HOTELID = %d" % (empid, hotelid)
-    cur.execute(query)
-    return cur.fetchone() is not None
 
 def service_staff_room_exists(id):
     query = "SELECT SERVICE_STAFF_ID FROM SERVICE_STAFF_ROOM WHERE SERVICE_STAFF_ID=%s" % (
@@ -752,14 +750,9 @@ def add_club():
             print("Error at add_club(): Hotel does not exist")
             return
 
-    
-        if not supervisor_exists(row["SUPID"]):
-            print("Supervisor with ID does not exist")
-            return
-        if not employee_in_hotel(row["SUPID"], row["HOTELID"]):
-            print("Supervisor does not belong to hotel with ID %d" % (row["HOTELID"]))
-            return
-        
+        while not supervisor_exists(row["SUPID"]):
+            row["SUPID"] = int(input("Incorrect supervisor ID: "))
+
         club_query = "SELECT * FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s' AND MONTH = %d AND YEAR = %d" % (
             row["HOTELID"], row["TYPE"], row["MONTH"], row["YEAR"]
         )
@@ -963,9 +956,6 @@ def add_service_staff_room():
 
         if not service_staff_exists(row["SERVICE_STAFF_ID"]):
             print("Error assigning service staff: Service staff does not exist")
-            return
-        if not employee_in_hotel(row["SERVICE_STAFF_ID"], row["HOTELID"]):
-            print("Error assigning service staff: Service staff does not belong to hotel")
             return
 
         query = "INSERT INTO SERVICE_STAFF_ROOM (ROOMNO, HOTELID, SERVICE_STAFF_ID) VALUES (%d, %d, %d)" % (
