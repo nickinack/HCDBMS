@@ -18,16 +18,11 @@ def add_hotel():
             id = input("Hotel ID: ")
             name = input("Name: ")
             managerid = input("Manager ID: ")
-            maanger_flag = ""
             # Check if Manager exists in the database
-            if not manager_exists(managerid):
-                manager_flag = input(
-                    "No such Manager exists , would you like to add a new manager(0/1)?: ")
-                if manager_flag:
-                    hireAnEmployee(id)
-                else:
-                    print("\n Sorry cannot insert")
-                    return
+            if manager_exists(managerid):
+                print("Manager already taking care of another hotel \n")
+                return
+            hireAnEmployee(id)
             stars = input("Stars: ")
             locationid = addLocation()
             print(locationid)
@@ -36,8 +31,7 @@ def add_hotel():
             # print(query)
             cur.execute(query)
             con.commit()
-            if manager_flag:
-                belongs_to(id, managerid)
+            belongs_to(id, managerid)
         except Exception as e:
             con.rollback()
             print("Failed to insert new hotel")
@@ -112,9 +106,9 @@ def hireAnEmployee(hotelid_default=None):
         position = input(
             "Enter the position of the employee (supervisor/service_staff/manager): ")
         if position == "supervisor":
-            add_supervisor(row["ID"])
+            add_supervisor(row["ID"],hotelid)
         elif position == "service_staff":
-            add_service_staff(row["ID"])
+            add_service_staff(row["ID"],hotelid)
         elif position == "manager":
             add_manager(row["ID"])
         
@@ -225,13 +219,13 @@ def changeEmpStatus(id):
         print(e)
 
 
-def add_supervisor(id):
+def add_supervisor(id,hotelid):
     '''
     Add a supervisor
     '''
     try:
-        managerid = input("Manager ID: ")
-        if not manager_exists(managerid):
+        managerid = int(input("Manager ID: "))
+        if (not manager_exists(managerid)) or (not employee_hotel(hotelid,empid)):
             print("No such manager exists")
             return
         dept = input("Department: ")
@@ -250,13 +244,13 @@ def add_supervisor(id):
         print(e)
 
 
-def add_service_staff(id):
+def add_service_staff(id,hotelid):
     '''
     Add a service staff
     '''
     try:
         superid = input("Supervisor ID: ")
-        if not supervisor_exists(superid):
+        if (not supervisor_exists(superid)) or (not employee_hotel(hotelid,id)):
             print("No such supervisor exists")
             return
         dept = input("Department: ")
@@ -718,6 +712,11 @@ def guest_exists(roomno, hotelid, checkin, checkout):
 
 def member_exists(id):
     query = "SELECT * FROM MEMBERS WHERE ID = %d" % (id)
+    cur.execute(query)
+    return cur.fetchone() is not None
+
+def employee_hotel(hotelid,empid):
+    query = "SELECT EMPID FROM BELONGS_TO WHERE HOTELID=%d AND EMPID=%d"%(hotelid,empid)
     cur.execute(query)
     return cur.fetchone() is not None
 
@@ -1352,20 +1351,19 @@ def add_guest_club():
         print("Error registering")
         print(e)
 
-
-def disp_employees(fname, lname):
-    query = "SELECT * FROM EMPLOYEE WHERE FNAME = '%s' AND LNAME = '%s'" % (fname, lname)
-    try:
-    # if True:
-        cur.execute(query)
-        rows = cur.fetchall()
-        if rows == ():
-            print("No employees found")
-        else:
-            view_table(rows)
-    except Exception as e:
-        print("Error while searching for employee")
-        print(e)
+def disp_employees(fname, lname):	
+    query = "SELECT * FROM EMPLOYEE WHERE FNAME = '%s' AND LNAME = '%s'" % (fname, lname)	
+    try:	
+    # if True:	
+        cur.execute(query)	
+        rows = cur.fetchall()	
+        if rows == ():	
+            print("No employees found")	
+        else:	
+            view_table(rows)	
+    except Exception as e:	
+        print("Error while searching for employee")	
+        print(e)	
 
 
 def dispatch():
@@ -1398,10 +1396,10 @@ def dispatch():
 
     elif (ch == "f"):
         modify_service_staff_for_one_room()
-    
-    elif ch == "g":
-        fname = input("Enter first name: ")
-        lname = input("Enter last name: ")
+
+    elif ch == "g":	
+        fname = input("Enter first name: ")	
+        lname = input("Enter last name: ")	
         disp_employees(fname, lname)
 
     else:
@@ -1656,7 +1654,7 @@ def handle_views():
     if (choice == 1):
         hId=int(input("Please specify hotelID: "))
         print("1.  Employees")
-        print("2.  Fired employees")
+        print("2. Fired employees")
         print("3.  Service staff")
         print("4.  Supervisors")
         print("5.  Managers")
