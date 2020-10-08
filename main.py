@@ -83,9 +83,11 @@ def hireAnEmployee(hotelid_default=None):
         row["FNAME"] = name[0]
         row["LNAME"] = name[1]
         row["ID"] = int(input("Input id: "))
-        if emp_exists(row["ID"]) and emp_fired(row["ID"]):
-            query = "UPDATE EMPLOYEE SET STATUS='Currently Employed' WHERE ID=%s" % (
+        if emp_fired(row["ID"]):
+            query = "UPDATE EMPLOYEE SET STATUS='Currently employed' WHERE ID=%s" % (
                 row["ID"])
+            cur.execute(query)
+            con.commit()
             return
         row["DOB"] = input("Birth Date (YYYY-MM-DD): ")
         row["EMAIL"] = input("email: ")
@@ -94,6 +96,18 @@ def hireAnEmployee(hotelid_default=None):
         row["STATUS"] = "currently employed"
         row["PHONE"] = int(input("Enter 6 digit phone: "))
         hotelid = int(input("Hotel ID: "))
+        if hotelid_default:
+            position = input("Manager ID: ")
+        else:
+            position = input(
+                "Enter the position of the employee (supervisor/service_staff/): ")
+            if position == "manager":
+                print("Cannot add manager \n")
+
+        if position is None:
+            print("Not a valid position \n")
+            return 
+
         if not hotel_exists(hotelid) and hotelid_default is None:
             print("No Such hotel exists")
             return
@@ -103,8 +117,6 @@ def hireAnEmployee(hotelid_default=None):
         cur.execute(query)
         con.commit()
         print("Inserted Into Employee Database")
-        position = input(
-            "Enter the position of the employee (supervisor/service_staff/manager): ")
         if position == "supervisor":
             add_supervisor(row["ID"],hotelid)
         elif position == "service_staff":
@@ -154,7 +166,7 @@ def fireAnEmployee():
            print("Cannot fire a manager ; only details of the manager can be changed\n")
 
         if service_staff_exists(id):
-            query = "DELETE FROM SERVICE STAFF WHERE ID=%s" % (id)
+            query = "DELETE FROM SERVICE_STAFF WHERE ID=%s" % (id)
             position = "Service staff"
             if service_staff_room_exists(id):
                 input_flag = input(
@@ -177,6 +189,7 @@ def fireAnEmployee():
                     boolval = change_supervisor_service_staff(id)
                     if boolval == -1:
                         print("Update failed \n")
+                        return
                 else:
                     return
             if supervises_clubs(id):
@@ -184,13 +197,15 @@ def fireAnEmployee():
                     "Supervisor is supervising clubs; would you like to change the supervisor for the clubs associated (yes/no)?: ")
                 if input_flag == "yes":
                     boolval = change_supervisor_club(id)
-                    if boolval == -1
-                    print("Update failed \n")
+                    if boolval == -1:
+                        print("Update failed \n")
+                        return
                 else:
                     return
 
         changeEmpStatus(id)
-        print(query)
+        cur.execute(query)
+        con.commit()
         query="DELETE FROM BELONGS_TO WHERE EMPID=%s"%(id)
         cur.execute(query)
         con.commit()
@@ -222,6 +237,9 @@ def add_supervisor(id,hotelid):
         managerid = int(input("Manager ID: "))
         if (not manager_exists(managerid)) or (not employee_in_hotel(managerid, hotelid)):
             print("No such manager exists")
+            query = "DELETE FROM EMPLOYEE WHERE ID=%s" % (id)
+            cur.execute(query)
+            con.commit()
             return
         dept = input("Department: ")
         while dept == "":
@@ -247,6 +265,9 @@ def add_service_staff(id,hotelid):
         superid = int(input("Supervisor ID: "))
         if (not supervisor_exists(superid)) or (not employee_in_hotel(superid, hotelid)):
             print("No such supervisor exists")
+            query = "DELETE FROM EMPLOYEE WHERE ID=%s" % (id)
+            cur.execute(query)
+            con.commit()
             return
         dept = input("Department: ")
         while dept == "":
@@ -642,7 +663,10 @@ def emp_exists(id):
 def emp_fired(id):
     query = "SELECT STATUS FROM EMPLOYEE WHERE ID=%s" % (id)
     cur.execute(query)
-    return cur.fetchone() == "FIRED"
+    res = cur.fetchone()
+    if res is None:
+        return None
+    return res["STATUS"] == "FIRED"
 
 
 def manages_supervisor(id):
