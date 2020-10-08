@@ -227,7 +227,7 @@ def add_supervisor(id,hotelid):
     '''
     try:
         managerid = int(input("Manager ID: "))
-        if (not manager_exists(managerid)) or (not employee_hotel(hotelid,managerid)):
+        if (not manager_exists(managerid)) or (not employee_in_hotel(managerid, hotelid)):
             print("No such manager exists")
             return
         dept = input("Department: ")
@@ -251,8 +251,8 @@ def add_service_staff(id,hotelid):
     Add a service staff
     '''
     try:
-        superid = input("Supervisor ID: ")
-        if (not supervisor_exists(superid)) or (not employee_hotel(hotelid,id)):
+        superid = int(input("Supervisor ID: "))
+        if (not supervisor_exists(superid)) or (not employee_in_hotel(superid, hotelid)):
             print("No such supervisor exists")
             return
         dept = input("Department: ")
@@ -718,7 +718,10 @@ def employee_hotel(hotelid,empid):
     cur.execute(query)
     return cur.fetchone() is not None
 
-
+def employee_in_hotel(empid, hotelid):
+    query = "SELECT * FROM BELONGS_TO WHERE EMPID = %d AND HOTELID = %d" % (empid, hotelid)
+    cur.execute(query)
+    return cur.fetchone() is not None
 '''
 Helper functions end
 '''
@@ -750,8 +753,13 @@ def add_club():
             print("Error at add_club(): Hotel does not exist")
             return
 
-        while not supervisor_exists(row["SUPID"]):
-            row["SUPID"] = int(input("Incorrect supervisor ID: "))
+        if not supervisor_exists(row["SUPID"]):
+            print("Supervisor with ID does not exist")
+            return
+        if not employee_in_hotel(row["SUPID"], row["HOTELID"]):
+            print("Supervisor does not belong to hotel with ID %d" % (row["HOTELID"]))
+            return
+
 
         club_query = "SELECT * FROM CLUBS WHERE HOTELID = %d AND TYPE = '%s' AND MONTH = %d AND YEAR = %d" % (
             row["HOTELID"], row["TYPE"], row["MONTH"], row["YEAR"]
@@ -956,6 +964,10 @@ def add_service_staff_room():
 
         if not service_staff_exists(row["SERVICE_STAFF_ID"]):
             print("Error assigning service staff: Service staff does not exist")
+            return
+
+        if not employee_in_hotel(row["SERVICE_STAFF_ID"], row["HOTELID"]):
+            print("Error assigning service staff: Service staff does not belong to hotel")
             return
 
         query = "INSERT INTO SERVICE_STAFF_ROOM (ROOMNO, HOTELID, SERVICE_STAFF_ID) VALUES (%d, %d, %d)" % (
