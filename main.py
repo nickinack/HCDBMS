@@ -418,9 +418,13 @@ def modify_manager_for_one_supervisor(id):
     Modifies manager for one supervisor
     '''
     try:
-        managerid = input("Enter the new manager id for the supervisor: ")
+        managerid = int(input("Enter the new manager id for the supervisor: "))
         if (not manager_exists(managerid)) or (not emp_exists(managerid)) or (emp_fired(managerid)):
             print("Manager does not exist in the database / is fired \n")
+            return
+        
+        if get_hotel_for_employee(managerid) != get_hotel_for_employee(id):
+            print("Manager and supervisor must belong to the same hotel")
             return
 
         query = "UPDATE SUPERVISOR SET MANAGERID=%s WHERE ID=%s" % (
@@ -438,9 +442,13 @@ def modify_supervisor_for_one_service_staff(id):
     Modifies supervisor of one service staff member
     '''
     try:
-        supid = input("Enter the new supervisor id for the service staff: ")
-        if (not supervisor_exists(id)) or (not emp_fired(supid)) or (emp_fired(supid)):
-            print("Supervisor does not exis in the database / is fired")
+        supid = int(input("Enter the new supervisor id for the service staff: "))
+        if (not supervisor_exists(supid)) or (not emp_exists(supid)) or (emp_fired(supid)):
+            print("Supervisor does not exist in the database / is fired")
+            return
+        
+        if get_hotel_for_employee(supid) != get_hotel_for_employee(id):
+            print("Supervisor and service staff must belong to the same hotel")
             return
 
         query = "UPDATE SERVICE_STAFF SET SUPID=%s WHERE ID=%s" % (supid, id)
@@ -722,6 +730,14 @@ def employee_in_hotel(empid, hotelid):
     query = "SELECT * FROM BELONGS_TO WHERE EMPID = %d AND HOTELID = %d" % (empid, hotelid)
     cur.execute(query)
     return cur.fetchone() is not None
+
+def get_hotel_for_employee(empid):
+    query = "SELECT HOTELID FROM BELONGS_TO WHERE EMPID = %d" % (empid)
+    cur.execute(query)
+    res = cur.fetchone()
+    if res is None:
+        return None
+    return res["HOTELID"]
 '''
 Helper functions end
 '''
@@ -895,9 +911,6 @@ def add_finances():
    
     # if True:
     try:
-        query = "SELECT SUM(SALARY) FROM EMPLOYEE WHERE NOT STATUS='FIRED'"
-        cur.execute(query)
-        salary_cnt = cur.fetchone()
         row = {}
         print("Enter finance details: ")
         row["HOTELID"] = int(input("HOTEL ID: "))
@@ -905,9 +918,14 @@ def add_finances():
         row["YEAR"] = int(input("YEAR: "))
         row["ELEC_BILL"] = int(input("Electricity bill: "))
         row["HOTEL_BILL"] = int(input("Hotel bill: "))
-        row["EMP_EXP"] = int(input("Employee Expenditure: "))
-        row["SERVICE_EXP"] = int(salary_cnt["SUM(SALARY)"])
+        row["SERVICE_EXP"] = int(input("Service Expenditure: "))
         row["TOTAL_INCOME"] = int(input("Total income: "))
+        
+        query = "SELECT SUM(SALARY) FROM EMPLOYEE WHERE NOT STATUS='FIRED' AND ID = (SELECT EMPID FROM BELONGS_TO WHERE HOTELID = %d AND EMPID = ID)" % (
+            row["HOTELID"]
+        )
+        cur.execute(query)
+        salary_cnt = cur.fetchone()["SUM(SALARY)"]
 
         if not (row["MONTH"] >= 1 and row["MONTH"] <= 12):
             print("Incorrect month entered")
@@ -917,7 +935,14 @@ def add_finances():
             print("Error while adding finances: No such hotel exists")
             return
 
+        old_income = 0
         if finances_exists(row["HOTELID"], row["MONTH"], row["YEAR"]):
+            total_inc = "SELECT TOTAL_INCOME FROM FINANCES WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
+                row["HOTELID"], row["MONTH"], row["YEAR"]
+            )
+            cur.execute(total_inc)
+            old_income = cur.fetchone()['TOTAL_INCOME']
+
             finances_del = "DELETE FROM FINANCES WHERE HOTELID = %d AND MONTH = %d AND YEAR = %d" % (
                 row["HOTELID"], row["MONTH"], row["YEAR"]
             )
@@ -929,9 +954,9 @@ def add_finances():
             row["YEAR"],
             row["ELEC_BILL"],
             row["HOTEL_BILL"],
-            row["EMP_EXP"],
+            salary_cnt,
             row["SERVICE_EXP"],
-            row["TOTAL_INCOME"]
+            row["TOTAL_INCOME"] + old_income
         )
 
         cur.execute(finances_query)
@@ -1665,15 +1690,16 @@ def handle_views():
             query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s)" % (
                 hId)
         elif (chch == 2):
-            query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s) and status != 'employed" % (
+            query = "SELECT * from EMPLOYEE WHERE ID IN(select EMPID from BELONGS_TO where HOTELID=%s) and status = 'FIRED'" % (
                 hId)
         elif (chch == 3):
-            query = "select * from employee where id in (select id from service_staff) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
+            query = "select * from EMPLOYEE where id in (select id from SERVICE_STAFF) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
                 hId)
         elif (chch == 4):
-            query = "select * from employee where id in (select id from supervisor) and hotelid = %s" %(hId)
+            query = "select * from EMPLOYEE where id in (select id from SUPERVISOR) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
+                hId)
         elif (chch == 5):
-            query = "select * from employee where id in (select id from MANAGER) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
+            query = "select * from EMPLOYEE where id in (select id from MANAGER) and id in (select EMPID from BELONGS_TO where HOTELID=%s)" % (
                 hId)
         else:
             print("invalid")
