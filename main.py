@@ -97,12 +97,13 @@ def hireAnEmployee(hotelid_default=None):
         row["PHONE"] = int(input("Enter 6 digit phone: "))
         hotelid = int(input("Hotel ID: "))
         if hotelid_default:
-            position = input("Manager ID: ")
+            position = "manager"
         else:
             position = input(
-                "Enter the position of the employee (supervisor/service_staff/): ")
+                "Enter the position of the employee (supervisor/service_staff): ")
             if position == "manager":
                 print("Cannot add manager \n")
+                return
 
         if position is None:
             print("Not a valid position \n")
@@ -111,6 +112,7 @@ def hireAnEmployee(hotelid_default=None):
         if not hotel_exists(hotelid) and hotelid_default is None:
             print("No Such hotel exists")
             return
+        
         query = "INSERT INTO EMPLOYEE (FNAME, LNAME, ID, DOB, EMAIL, JOINDATE, SALARY, STATUS, PHONE) VALUES('%s','%s', %s, '%s', '%s', '%s', %s, '%s',%s)" % (
             row["FNAME"], row["LNAME"], row["ID"], row["DOB"], row["EMAIL"], row["JOINDATE"], row["SALARY"], row["STATUS"], row["PHONE"])
         # print(query)

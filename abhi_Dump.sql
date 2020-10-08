@@ -18,9 +18,7 @@
 --
 -- Table structure for table `BELONGS_TO`
 --
-DROP DATABASE IF EXISTS HCDBMS;
-CREATE DATABASE HCDBMS;
-use HCDBMS;
+
 DROP TABLE IF EXISTS `BELONGS_TO`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -40,7 +38,7 @@ CREATE TABLE `BELONGS_TO` (
 
 LOCK TABLES `BELONGS_TO` WRITE;
 /*!40000 ALTER TABLE `BELONGS_TO` DISABLE KEYS */;
-INSERT INTO `BELONGS_TO` VALUES (1,1292),(1,2187),(2,2312),(1,6969),(1,7823),(1,8973),(1,9842),(1,9873),(1,80085),(1,98745);
+INSERT INTO `BELONGS_TO` VALUES (3,123),(1,1292),(2,1334),(1,2187),(2,2312),(1,6969),(1,7823),(1,8973),(1,9842),(1,9873),(2,9985),(1,80085),(1,98745);
 /*!40000 ALTER TABLE `BELONGS_TO` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -105,7 +103,7 @@ CREATE TABLE `EMPLOYEE` (
 
 LOCK TABLES `EMPLOYEE` WRITE;
 /*!40000 ALTER TABLE `EMPLOYEE` DISABLE KEYS */;
-INSERT INTO `EMPLOYEE` VALUES (1292,'not_fnae','tha',458734,'o@tha.ks','1987-12-23','2020-12-23','currently employed',782347),(2187,'john','boyega',794532,'john.finn@gmail.com','2001-12-23','2020-12-23','currently employed',21871),(2312,'Hama','Watertribe',792303,'hama.waters@yahoo.com','2002-12-23','2020-12-23','currently employed',763783),(6969,'abhi','siv',687622,'abhi.siv@onlyfans.com','2001-12-22','2020-12-23','currently employed',126872),(7823,'doe','john',346783,'dfg@jkjh.com','1987-12-23','2020-12-23','currently employed',390489),(8973,'queer','meave',878312,'proud.meave@vought.com','1992-12-23','2020-12-23','FIRED',823782),(9842,'wendy','mcdonald',128773,'wendy@mcD.com','2001-12-23','2020-12-23','currently employed',876872),(9873,'saru','sen',983213,'saru@gmail.com','2001-12-23','2020-12-23','currently employed',128764),(80085,'karthik','vis',987433,'karkar@queerandproud.com','2001-12-23','2020-12-23','currently employed',42069),(98745,'luke','vader',987402,'luke@saberupmyass.com','1969-12-23','2020-12-23','currently employed',986986);
+INSERT INTO `EMPLOYEE` VALUES (112,'K','ubunu',123673,'ubunu@ubunu.org','2001-01-01','2019-01-02','FIRED',12346),(123,'RANDOM','MANAGERCOOLBOIY',345120,'random_manager@coolboy.xyz','2002-03-01','2019-06-01','currently employed',546546),(1292,'not_fnae','tha',458734,'o@tha.ks','1987-12-23','2020-12-23','currently employed',782347),(1313,'bloody','marie',576562,'bloody_marie@halloween.com','2019-12-13','2020-12-04','FIRED',45682),(1334,'temp','staff',476734,'temp@gmail.com','2002-02-03','2019-02-02','currently employed',45643),(2187,'john','boyega',794532,'john.finn@gmail.com','2001-12-23','2020-12-23','currently employed',21871),(2312,'Hama','Watertribe',792303,'hama.waters@yahoo.com','2002-12-23','2020-12-23','currently employed',763783),(6969,'abhi','siv',687622,'abhi.siv@onlyfans.com','2001-12-22','2020-12-23','currently employed',126872),(7823,'doe','john',346783,'dfg@jkjh.com','1987-12-23','2020-12-23','currently employed',390489),(8973,'queer','meave',878312,'proud.meave@vought.com','1992-12-23','2020-12-23','FIRED',823782),(9842,'wendy','mcdonald',128773,'wendy@mcD.com','2001-12-23','2020-12-23','currently employed',876872),(9873,'saru','sen',983213,'saru@gmail.com','2001-12-23','2020-12-23','currently employed',128764),(9985,'staff','temp',123098,'staff@temp.com','2002-03-05','2019-02-02','currently employed',76573),(80085,'karthik','vis',987433,'karkar@queerandproud.com','2001-12-23','2020-12-23','currently employed',42069),(98745,'luke','vader',987402,'luke@saberupmyass.com','1969-12-23','2020-12-23','currently employed',986986);
 /*!40000 ALTER TABLE `EMPLOYEE` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -165,7 +163,7 @@ CREATE TABLE `FINANCES` (
 
 LOCK TABLES `FINANCES` WRITE;
 /*!40000 ALTER TABLE `FINANCES` DISABLE KEYS */;
-INSERT INTO `FINANCES` VALUES (2,12,2020,0,0,763783,0,0),(1,12,2020,345,4564,3356270,6043,346789),(1,11,2020,456,4567,3356270,3453,0);
+INSERT INTO `FINANCES` VALUES (2,1,2019,0,0,12346,0,0),(3,3,2019,0,0,34547,0,0),(2,2,2019,0,0,122216,0,0),(3,6,2019,0,0,546546,0,0),(2,12,2020,0,0,809465,0,0),(1,12,2020,345,4564,3356270,6043,346789),(1,11,2020,456,4567,3356270,3453,0);
 /*!40000 ALTER TABLE `FINANCES` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -226,7 +224,7 @@ CREATE TABLE `HOTEL` (
 
 LOCK TABLES `HOTEL` WRITE;
 /*!40000 ALTER TABLE `HOTEL` DISABLE KEYS */;
-INSERT INTO `HOTEL` VALUES (1,'the grand budapest',2187,16,4),(2,'the Inn',2312,17,4);
+INSERT INTO `HOTEL` VALUES (1,'the grand budapest',2187,16,4),(2,'the Inn',2312,17,4),(3,'HOTEL TULIP GRAND BLUE',123,19,7);
 /*!40000 ALTER TABLE `HOTEL` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -245,7 +243,7 @@ CREATE TABLE `LOCATION` (
   `ZIPCODE` int NOT NULL,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `ZIPCODE` (`ZIPCODE`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -254,7 +252,7 @@ CREATE TABLE `LOCATION` (
 
 LOCK TABLES `LOCATION` WRITE;
 /*!40000 ALTER TABLE `LOCATION` DISABLE KEYS */;
-INSERT INTO `LOCATION` VALUES (16,'12','dagoba','india',201012),(17,'78','fireCity','fireNation',892389);
+INSERT INTO `LOCATION` VALUES (16,'12','dagoba','india',201012),(17,'78','fireCity','fireNation',892389),(19,'coolstreet','coolcity','USOFcool',12356771);
 /*!40000 ALTER TABLE `LOCATION` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -278,7 +276,7 @@ CREATE TABLE `MANAGER` (
 
 LOCK TABLES `MANAGER` WRITE;
 /*!40000 ALTER TABLE `MANAGER` DISABLE KEYS */;
-INSERT INTO `MANAGER` VALUES (2187),(2312);
+INSERT INTO `MANAGER` VALUES (123),(2187),(2312);
 /*!40000 ALTER TABLE `MANAGER` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -450,7 +448,7 @@ CREATE TABLE `SERVICE_STAFF` (
 
 LOCK TABLES `SERVICE_STAFF` WRITE;
 /*!40000 ALTER TABLE `SERVICE_STAFF` DISABLE KEYS */;
-INSERT INTO `SERVICE_STAFF` VALUES (7823,1292,'burgers');
+INSERT INTO `SERVICE_STAFF` VALUES (7823,1292,'burgers'),(9985,1334,'spa');
 /*!40000 ALTER TABLE `SERVICE_STAFF` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -478,6 +476,7 @@ CREATE TABLE `SERVICE_STAFF_ROOM` (
 
 LOCK TABLES `SERVICE_STAFF_ROOM` WRITE;
 /*!40000 ALTER TABLE `SERVICE_STAFF_ROOM` DISABLE KEYS */;
+INSERT INTO `SERVICE_STAFF_ROOM` VALUES (1,2,9985);
 /*!40000 ALTER TABLE `SERVICE_STAFF_ROOM` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -505,6 +504,6 @@ CREATE TABLE `SUPERVISOR` (
 
 LOCK TABLES `SUPERVISOR` WRITE;
 /*!40000 ALTER TABLE `SUPERVISOR` DISABLE KEYS */;
-INSERT INTO `SUPERVISOR` VALUES (1292,2187,'pizza'),(9842,2187,'burgers');
+INSERT INTO `SUPERVISOR` VALUES (1292,2187,'pizza'),(1334,2312,'spa'),(9842,2187,'burgers');
 /*!40000 ALTER TABLE `SUPERVISOR` ENABLE KEYS */;
 UNLOCK TABLES;
